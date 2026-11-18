@@ -12,7 +12,8 @@
    Z^α = moyenne des piliers Croissance, Rentabilité, Valorisation et du z-score de l'upside.
    λ = 0 par défaut : l'upside entre par son z-score (information relative, sans le biais
    d'optimisme de son niveau) ; la prime de risque implicite donne le niveau.
-   (règle de Grinold : alpha = coefficient d'information × volatilité × score).
+   Z^α est re-standardisé (moyenne 0, écart-type 1) avant d'appliquer la règle de Grinold :
+   alpha = coefficient d'information × volatilité × score.
 """
 from __future__ import annotations
 
@@ -76,6 +77,7 @@ def composite_score(z: pd.DataFrame) -> pd.DataFrame:
 def expected_return(df: pd.DataFrame, z_alpha: pd.Series, vol: pd.Series, rf: float,
                     lam: float, ic: float) -> pd.DataFrame:
     """Rendement attendu en excès du sans-risque (%), décomposé en trois briques."""
+    z_alpha = (z_alpha - z_alpha.mean()) / z_alpha.std()   # score re-standardisé (écart-type 1), règle de Grinold
     prem = (1 - lam) * df["risk_prem"]
     up = lam * (df["upside"] - rf)
     alpha = ic * vol * z_alpha

@@ -30,8 +30,13 @@ def quotas(sizes: pd.Series, n_total: int) -> pd.Series:
     return q
 
 
-def select(df: pd.DataFrame, n_total: int, eligible: pd.Series, score: str = "Score final") -> pd.DataFrame:
-    """Renvoie les titres retenus avec la raison de leur sélection."""
+def select(df: pd.DataFrame, n_total: int, eligible: pd.Series, score: str = "Score final",
+           rescue: pd.Series | None = None) -> pd.DataFrame:
+    """Renvoie les titres retenus avec la raison de leur sélection.
+
+    rescue : titres repêchables (mode ESG) pour une sous-industrie qui aurait droit à des places
+    mais n'aurait aucun titre éligible ; on y reprend alors son meilleur score (> médiane).
+    """
     med = df.groupby("subindustry")[score].transform("median")
     strong = eligible & (df[score] > med)
     q = quotas(df["subindustry"].value_counts(), n_total)
@@ -43,12 +48,24 @@ def select(df: pd.DataFrame, n_total: int, eligible: pd.Series, score: str = "Sc
         for i in cand.index:
             picked.append(i)
             reason[i] = "Quota de sa sous-industrie"
-    for pool, label in [(strong, "Place restante (meilleur score restant, > médiane)"),
-                        (eligible, "Complément (meilleur score éligible restant)")]:
+        if len(cand) == 0 and rescue is not None:
+            alt = df[rescue & (df[score] > med) & (df.subindustry == g)].sort_values(score, ascending=False).head(1)
+            for i in alt.index:
+                picked.append(i)
+                reason[i] = "Repêché (diversification sectorielle)"
+    pools = [(strong, "Place restante (meilleur score restant, > médiane)")]
+    if rescue is not None:
+        pools.append((rescue & (df[score] > med) & ~eligible, "Repêché (diversification sectorielle)"))
+    pools.append((eligible, "Complément (meilleur score éligible restant)"))
+    for pool, label in pools:
         need = n_total - len(picked)
         if need <= 0:
             break
-        rest = df[pool & ~df.index.isin(picked)].sort_values(score, ascending=False).head(need)
+        cand = df[pool & ~df.index.isin(picked)].copy()
+        # priorité aux sous-industries encore absentes du portefeuille, puis au score
+        cand["_absent"] = ~cand["subindustry"].isin(df.loc[picked, "subindustry"])
+        rest = cand.sort_values(["_absent", score], ascending=[False, False]).head(need) \
+            if label.startswith("Repêché") else cand.sort_values(score, ascending=False).head(need)
         for i in rest.index:
             picked.append(i)
             reason[i] = label
@@ -86,7 +103,16 @@ def max_sharpe(mu: np.ndarray, cov: np.ndarray, cap: float) -> np.ndarray:
         if v0 < best_val:
             best, best_val = w0, v0
     best[best < 1e-5] = 0
-    return best / best.sum()
+    best = best / best.sum()
+    for _ in range(50):  # projection exacte sur la contrainte de plafond après arrondis
+        over = best > cap
+        if not over.any():
+            break
+        excess = (best[over] - cap).sum()
+        best[over] = cap
+        free = best < cap
+        best[free] += excess * best[free] / best[free].sum()
+    return best
 
 
 def risk_contributions(w: np.ndarray, cov: np.ndarray) -> np.ndarray:

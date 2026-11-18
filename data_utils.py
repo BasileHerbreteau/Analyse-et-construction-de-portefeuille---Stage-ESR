@@ -61,7 +61,7 @@ LABELS = {
     "fcf_minus_ey": "FCF yield − earnings yield (pts)",
     # risque / rendement (calculés dans analytics.py)
     "vol": "Volatilité estimée (% annualisé)",
-    "mu": "Rendement attendu en excès (%)",
+    "mu": "Rendement attendu ex ante (%, en excès de r_f)",
     "sharpe_ante": "Sharpe ex ante",
     "sharpe_post": "Sharpe ex post (année N-1)",
     # ESG (fichier externe sourcé, optionnel)
@@ -188,3 +188,18 @@ def ols_fit(x: pd.Series, y: pd.Series) -> dict:
     spearman = pd.Series(x).rank().corr(pd.Series(y).rank())
     return {"slope": slope, "intercept": intercept, "r2": r2,
             "pearson": pearson, "spearman": spearman, "n": len(x)}
+
+
+def ols_multi(y: pd.Series, X: pd.DataFrame) -> dict:
+    """Régression linéaire multiple (MCO) avec constante : coefficients, t de Student, R²."""
+    m = y.notna() & X.notna().all(axis=1)
+    yv = y[m].to_numpy(float)
+    Xv = np.c_[np.ones(m.sum()), X[m].to_numpy(float)]
+    beta, *_ = np.linalg.lstsq(Xv, yv, rcond=None)
+    e = yv - Xv @ beta
+    s2 = e @ e / (len(yv) - Xv.shape[1])
+    se = np.sqrt(np.diag(s2 * np.linalg.inv(Xv.T @ Xv)))
+    names = ["const"] + list(X.columns)
+    r2 = 1 - e @ e / ((yv - yv.mean()) @ (yv - yv.mean()))
+    return {"coef": dict(zip(names, beta)), "t": dict(zip(names, beta / se)), "r2": float(r2), "n": int(m.sum())}
+

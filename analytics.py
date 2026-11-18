@@ -11,11 +11,11 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 
-MU_CHOICES = {
-    "risk_prem": "Prime de risque implicite (Rsk Prem), déjà un rendement en excès du sans-risque",
-    "upside": "Upside des analystes − taux sans risque",
-    "gordon": "FCF yield + croissance LT du BPA − taux sans risque (logique de Gordon)",
-}
+# Hypothèses de corrélation (même sous-industrie, même secteur, secteurs différents) et jeux de sensibilité
+RHO_CENTRAL = (0.60, 0.40, 0.25)
+RHO_SETS = {"Basse": (0.40, 0.25, 0.10), "Centrale": RHO_CENTRAL, "Haute": (0.80, 0.60, 0.40)}
+RF_DEFAULT = 4.32  # rendement du T-bill américain 3 mois au 13/11/2026 (FRED, série DGS3MO)
+RF_SOURCE = "https://fred.stlouisfed.org/series/DGS3MO"
 
 
 def period_lengths(data_date: pd.Timestamp) -> tuple[float, float, float]:
@@ -48,16 +48,6 @@ def shrink_to_group(s: pd.Series, groups: pd.Series, alpha: float) -> pd.Series:
     """α × estimation individuelle + (1 − α) × médiane du groupe (réduit le bruit)."""
     med = s.groupby(groups).transform("median")
     return alpha * s + (1 - alpha) * med
-
-
-def expected_excess_return(df: pd.DataFrame, choice: str, rf: float) -> pd.Series:
-    if choice == "risk_prem":
-        return df["risk_prem"]
-    if choice == "upside":
-        return df["upside"] - rf
-    if choice == "gordon":
-        return df["fcf_yield"] + df["ltg_eps"] - rf
-    raise ValueError(choice)
 
 
 def block_correlation(df: pd.DataFrame, rho_sub: float, rho_sec: float, rho_all: float) -> np.ndarray:
