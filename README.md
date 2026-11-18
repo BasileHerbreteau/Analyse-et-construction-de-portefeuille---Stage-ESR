@@ -23,7 +23,7 @@ comparé à l'équipondéré, avec ou sans **filtre ESG**.
 
 **Données**
 - Critères financiers issus du seul fichier Excel ; scores ESG S&P Global sourcés titre par titre.
-- Valeurs extrêmes écrêtées aux quantiles 2 % / 98 % (winsorisation).
+- Valeurs extrêmes écrêtées aux quantiles 2 % / 98 % (winsorisation), sauf l'upside des analystes, conservé tel quel.
 - Taux sans risque : 4,32 %, T-bill américain 3 mois au 13/11/2026 (FRED, DGS3MO).
 
 **Volatilité**
@@ -31,19 +31,19 @@ comparé à l'équipondéré, avec ou sans **filtre ESG**.
 - Moyenne 50/50 entre l'estimation du titre et la médiane de sa sous-industrie.
 
 **Critère agrégé**
-- 8 facteurs transformés en z-scores relatifs à la sous-industrie.
+- 8 facteurs transformés en z-scores relatifs à la sous-industrie ; statistiques des petites sous-industries rapprochées de celles du secteur.
 - 4 piliers à poids égal : Croissance, Rentabilité, Valorisation, Attentes du marché.
 - Score final = moyenne des 4 piliers.
 
 **Comparaison avec la Rule of 40**
-- Spearman 0,46 et κ de Cohen 0,47 : les deux critères sont liés, avec un accord modéré.
-- La Rule of 40 retient des titres plus chers et plus concentrés sectoriellement.
-- Le score intègre en plus le prix payé et les attentes, relativement aux pairs.
+- Corrélations de rang (Spearman, Kendall) entre les deux classements.
+- Recouvrement à taille égale : titres retenus par les deux critères, comparé au recouvrement attendu sans lien.
+- Profil des titres retenus par chaque critère : valorisation, risque, diversification.
+- La Rule of 40 mesure la performance opérationnelle ; le score intègre en plus le prix payé et les attentes, relativement aux pairs.
 
 **Rendement attendu**
 - Niveau : prime de risque implicite, déjà nette du taux sans risque.
 - Alpha : IC × volatilité × score standardisé (règle de Grinold), où le score inclut l'upside relatif aux pairs.
-- Rendement attendu médian ≈ 9,6 %.
 
 **Portefeuille**
 - Quotas par sous-industrie au prorata de leur taille.
@@ -51,13 +51,13 @@ comparé à l'équipondéré, avec ou sans **filtre ESG**.
 - Pondération qui maximise le Sharpe ex ante, avec 5 % maximum par titre.
 - Filtre ESG : score ESG supérieur à la médiane de la sous-industrie, avec repêchage des bons scores pour préserver la diversification.
 
-## Résultats (paramètres par défaut)
+## Résultats
 
 | | Équipondéré (99) | Sans ESG | Avec filtre ESG |
 | --- | --- | --- | --- |
-| Rendement attendu | 11,7 % | 18,9 % | 15,7 % |
-| Volatilité estimée | 29,2 % | 24,1 % | 25,1 % |
-| Sharpe ex ante | 0,40 | 0,78 | 0,63 |
+| Rendement attendu | 11,6 % | 18,9 % | 15,5 % |
+| Volatilité estimée | 29,3 % | 24,1 % | 24,9 % |
+| Sharpe ex ante | 0,40 | 0,78 | 0,62 |
 
 Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes.
 
@@ -76,4 +76,4 @@ streamlit run app.py
 Déploiement : [share.streamlit.io](https://share.streamlit.io) → *Create app* → ce dépôt, branche `main`, fichier `app.py`.
 
 Code : `app.py` (interface), `data_utils.py` (données), `analytics.py` (volatilité, frontière), `scoring.py`
-(z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection, optimisation). Logo et marque Amundi : propriété d'Amundi.
+(z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection, optimisation).

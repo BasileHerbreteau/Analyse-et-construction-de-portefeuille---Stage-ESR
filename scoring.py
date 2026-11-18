@@ -45,7 +45,7 @@ def _shrunk_group_stats(x: pd.Series, group: pd.Series, parent: pd.Series, k: fl
     return m, np.sqrt(v)
 
 
-def factor_zscores(df: pd.DataFrame, level: str = "subindustry", k: float = 5.0,
+def factor_zscores(df: pd.DataFrame, level: str = "subindustry", k: float = 3.0,
                    clip: float = 3.0) -> pd.DataFrame:
     """z-score orienté de chaque facteur, relatif aux pairs du niveau choisi."""
     out = pd.DataFrame(index=df.index)
@@ -94,12 +94,5 @@ def rule40_comparison(score: pd.Series, r40: pd.Series, top_share: float = 0.30)
                      passe.map({True: "Passe la Rule of 40", False: "Ne passe pas"}))
     return {"spearman": score.rank().corr(r40.rank()), "kendall": score.corr(r40, method="kendall"),
             "crosstab": ct, "top": top, "passe": passe,
-            "accord": float((top == passe).mean()), "kappa": cohen_kappa(top, passe),
-            "accord_hasard": float(top.mean() * passe.mean() + (1 - top.mean()) * (1 - passe.mean()))}
-
-
-def cohen_kappa(a: pd.Series, b: pd.Series) -> float:
-    """κ de Cohen : accord observé corrigé de l'accord dû au hasard (0 = hasard, 1 = parfait)."""
-    po = float((a == b).mean())
-    pe = float(a.mean() * b.mean() + (1 - a.mean()) * (1 - b.mean()))
-    return (po - pe) / (1 - pe) if pe < 1 else np.nan
+            "commun": int((top & passe).sum()),
+            "commun_hasard": float(top.mean() * passe.sum())}
