@@ -1,0 +1,100 @@
+ticker,name,esg_score,esg_scale,esg_provider,esg_date,csa_score,sp_industry,sp_company,source_url
+BESI,BE SEMICONDUCTOR,61.0,score,S&P Global ESG Score (Sustainable1),2026-10-20,60.0,SEM Semiconductors & Semiconductor Equipment,BE Semiconductor Industries N.V.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4965941
+STMPA,STMICROELECTRONI,51.0,score,S&P Global ESG Score (Sustainable1),2026-10-26,48.0,SEM Semiconductors & Semiconductor Equipment,STMicroelectronics N.V.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4582036
+VU,VUSION,,score,S&P Global ESG Score (Sustainable1),,,,,
+DTE,DEUTSCHE TELEKOM,75.0,score,S&P Global ESG Score (Sustainable1),2026-08-25,74.0,TLS Telecommunication Services,Deutsche Telekom AG,https://www.spglobal.com/sustainable1/en/scores/results?cid=4066137
+KPN,KPN (KONIN) NV,53.0,score,"S&P Global CSA Score 2024 (Public Assessment, DJSI rebalancing)",2024-11-22,53.0,,Koninklijke KPN N.V.,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+PUB,PUBLICIS GROUPE,63.0,score,S&P Global ESG Score (Sustainable1),2026-10-06,61.0,PUB Media Movies & Entertainment,Publicis Groupe S.A.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4152438
+ASM,ASM INTL NV,81.0,score,S&P Global ESG Score (Sustainable1),2025-11-06,81.0,SEM Semiconductors & Semiconductor Equipment,ASM International NV,https://www.spglobal.com/sustainable1/en/scores/results?cid=4231951
+ASML,ASML HOLDING NV,58.0,score,S&P Global ESG Score (Sustainable1),2026-10-13,55.0,SEM Semiconductors & Semiconductor Equipment,ASML Holding N.V.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4965925
+CAP,CAPGEMINI SE,79.0,score,"S&P Global CSA Score 2024 (CSA Participant, DJSI rebalancing)",2024-11-22,79.0,,Capgemini SE,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+DSY,DASSAULT SYSTEME,69.0,score,S&P Global ESG Score (Sustainable1),2026-09-14,69.0,SOF Software,Dassault Systemes SE,https://www.spglobal.com/sustainable1/en/scores/results?cid=4200280
+IDR,INDRA SISTEMAS,86.0,score,S&P Global ESG Score (Sustainable1),2026-10-22,86.0,TSV IT services,Indra Sistemas S.A.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4966750
+IFX,INFINEON TECH,78.0,score,S&P Global ESG Score (Sustainable1),2026-08-26,78.0,SEM Semiconductors & Semiconductor Equipment,Infineon Technologies AG,https://www.spglobal.com/sustainable1/en/scores/results?cid=4304327
+NEM,NEMETSCHEK SE,,score,S&P Global ESG Score (Sustainable1),,,,,
+NOKIA,NOKIA OYJ,51.0,score,S&P Global ESG Score (Sustainable1),2025-10-24,48.0,CMT Communications Equipment,Nokia Oyj,https://www.spglobal.com/sustainable1/en/scores/results?cid=4166922
+SAP,SAP SE,58.0,score,S&P Global ESG Score (Sustainable1),2026-09-14,56.0,SOF Software,SAP SE,https://www.spglobal.com/sustainable1/en/scores/results?cid=4207967
+AUTO,AUTOTRADER GROUP,44.0,score,S&P Global ESG Score (Sustainable1),2025-09-04,39.0,IMS Interactive Media Services & Home Entertainment,Autotrader Group plc,https://www.spglobal.com/sustainable1/en/scores/results?cid=4966329
+HTO,HELLENIC TELECOM,47.0,score,"S&P Global CSA Score 2024 (Public Assessment, DJSI rebalancing)",2024-11-22,47.0,,Hellenic Telecommunications Organization S.A.,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+INF,INFORMA PLC,65.0,score,"S&P Global CSA Score 2024 (CSA Participant, DJSI rebalancing)",2024-11-22,65.0,,Informa plc,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+VEND,VEND MARKE CL,,score,S&P Global ESG Score (Sustainable1),,,,,
+VOD,VODAFONE GROUP,53.0,score,S&P Global ESG Score (Sustainable1),2026-09-28,50.0,TLS Telecommunication Services,Vodafone Group Public Limited Company,https://www.spglobal.com/sustainable1/en/scores/results?cid=4135789
+IFCN,INFICON-REG,21.0,score,"S&P Global CSA Score 2024 (Public Assessment, DJSI rebalancing)",2024-11-22,21.0,,INFICON Holding AG,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+LOGN,LOGITECH INTER-R,68.0,score,S&P Global ESG Score (Sustainable1),2026-09-08,68.0,THQ Computers & Peripherals and Office Electronics,Logitech International S.A.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4965921
+SGE,SAGE GROUP PLC/T,50.0,score,S&P Global ESG Score (Sustainable1),2025-08-27,46.0,SOF Software,The Sage Group plc,https://www.spglobal.com/sustainable1/en/scores/results?cid=4280892
+SOI,SOITEC,,score,S&P Global ESG Score (Sustainable1),,,,,
+SOP,SOPRA STERIA GRO,64.0,score,S&P Global ESG Score (Sustainable1),2026-09-01,64.0,TSV IT services,Sopra Steria Group SA,https://www.spglobal.com/sustainable1/en/scores/results?cid=4609861
+STMMI,STMICROELECTRONI,51.0,score,S&P Global ESG Score (Sustainable1),2026-10-26,48.0,SEM Semiconductors & Semiconductor Equipment,STMicroelectronics N.V.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4582036
+TPRO,TECHNOPROBE SPA,33.0,score,S&P Global ESG Score (Sustainable1),2026-08-10,27.0,SEM Semiconductors & Semiconductor Equipment,Technoprobe S.p.A.,https://www.spglobal.com/sustainable1/en/scores/results?cid=7847435
+TEMN,TEMENOS AG-REG,,score,S&P Global ESG Score (Sustainable1),,,,,
+FOX,FOX CORP - B,34.0,score,S&P Global ESG Score (Sustainable1),2026-01-12,32.0,PUB Media Movies & Entertainment,Fox Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=13518181
+RDDT,REDDIT INC-A,,score,S&P Global ESG Score (Sustainable1),,,,,
+TLS,TELSTRA GROUP LT,55.0,score,S&P Global ESG Score (Sustainable1),2026-09-21,51.0,TLS Telecommunication Services,Telstra Group Limited,https://www.spglobal.com/sustainable1/en/scores/results?cid=4160289
+VZ,VERIZON COMMUNIC,41.0,score,S&P Global ESG Score (Sustainable1),2026-01-29,35.0,TLS Telecommunication Services,Verizon Communications Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4057229
+DIS,WALT DISNEY CO/T,39.0,score,S&P Global ESG Score (Sustainable1),2026-07-16,36.0,PUB Media Movies & Entertainment,The Walt Disney Company,https://www.spglobal.com/sustainable1/en/scores/results?cid=4097175
+ADBE,ADOBE INC,48.0,score,S&P Global ESG Score (Sustainable1),2026-09-22,47.0,SOF Software,Adobe Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4047847
+AMAT,APPLIED MATERIAL,41.0,score,S&P Global ESG Score (Sustainable1),2026-03-03,36.0,SEM Semiconductors & Semiconductor Equipment,Applied Materials Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4073928
+ANET,ARISTA NETWORKS,39.0,score,S&P Global ESG Score (Sustainable1),2025-10-15,37.0,CMT Communications Equipment,Arista Networks Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4970981
+ADSK,AUTODESK INC,55.0,score,"S&P Global CSA Score 2024 (CSA Participant, DJSI rebalancing)",2024-11-22,55.0,,"Autodesk, Inc.",https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+AVGO,BROADCOM INC,43.0,score,S&P Global ESG Score (Sustainable1),2026-08-04,35.0,SEM Semiconductors & Semiconductor Equipment,Broadcom Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4970473
+CSCO,CISCO SYSTEMS,66.0,score,S&P Global ESG Score (Sustainable1),2026-10-27,66.0,CMT Communications Equipment,Cisco Systems Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4047857
+FLEX,FLEX LTD,58.0,score,"S&P Global CSA Score 2024 (CSA Participant, DJSI rebalancing)",2024-11-22,58.0,,Flex Ltd.,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+HUBS,HUBSPOT INC,56.0,score,S&P Global ESG Score (Sustainable1),2025-10-24,56.0,SOF Software,HubSpot Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4296620
+IBM,IBM,52.0,score,S&P Global ESG Score (Sustainable1),2026-06-24,48.0,TSV IT services,International Business Machines Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4000193
+INTC,INTEL CORP,53.0,score,S&P Global ESG Score (Sustainable1),2026-01-22,50.0,SEM Semiconductors & Semiconductor Equipment,Intel Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4025746
+MRVL,MARVELL TECHNOLO,,score,S&P Global ESG Score (Sustainable1),,,,,
+MSFT,MICROSOFT CORP,46.0,score,S&P Global ESG Score (Sustainable1),2026-09-22,43.0,SOF Software,Microsoft Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4004214
+MDB,MONGODB INC,36.0,score,S&P Global ESG Score (Sustainable1),2026-03-03,30.0,TSV IT services,MongoDB Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4616848
+NVDA,NVIDIA CORP,61.0,score,S&P Global ESG Score (Sustainable1),2026-09-22,60.0,SEM Semiconductors & Semiconductor Equipment,NVIDIA Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4094286
+OKTA,OKTA INC,44.0,score,S&P Global ESG Score (Sustainable1),2026-01-16,42.0,TSV IT services,Okta Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5202047
+PANW,PALO ALTO NETWOR,50.0,score,S&P Global ESG Score (Sustainable1),2025-11-07,47.0,SOF Software,Palo Alto Networks Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4318651
+CRM,SALESFORCE INC,53.0,score,S&P Global ESG Score (Sustainable1),2026-10-06,50.0,SOF Software,Salesforce Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4205848
+IOT,SAMSARA INC-CL A,,score,S&P Global ESG Score (Sustainable1),,,,,
+WDC,WESTERN DIGITAL,55.0,score,S&P Global ESG Score (Sustainable1),2026-02-09,54.0,THQ Computers & Peripherals and Office Electronics,Western Digital Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4071659
+GOOGL,ALPHABET INC-A,29.0,score,S&P Global ESG Score (Sustainable1),2026-10-29,26.0,IMS Interactive Media Services & Home Entertainment,Alphabet Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4633618
+T,AT&T INC,52.0,score,S&P Global ESG Score (Sustainable1),2026-07-22,52.0,TLS Telecommunication Services,AT&T Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4024242
+CHTR,CHARTER COMMUN-A,16.0,score,S&P Global ESG Score (Sustainable1),2026-09-07,13.0,PUB Media Movies & Entertainment,Charter Communications Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4121481
+FOXA,FOX CORP - A,34.0,score,S&P Global ESG Score (Sustainable1),2026-01-12,32.0,PUB Media Movies & Entertainment,Fox Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=13518181
+NFLX,NETFLIX INC,24.0,score,S&P Global ESG Score (Sustainable1),2026-11-16,22.0,PUB Media Movies & Entertainment,Netflix Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4104060
+OMC,OMNICOM GROUP,,score,S&P Global ESG Score (Sustainable1),,,,,
+TTWO,TAKE-TWO INTERAC,40.0,score,S&P Global ESG Score (Sustainable1),2026-01-05,35.0,IMS Interactive Media Services & Home Entertainment,Take-Two Interactive Software Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4965854
+ADI,ANALOG DEVICES,45.0,score,S&P Global ESG Score (Sustainable1),2026-10-07,40.0,SEM Semiconductors & Semiconductor Equipment,Analog Devices Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4113211
+AAPL,APPLE INC,32.0,score,S&P Global ESG Score (Sustainable1),2026-11-10,27.0,THQ Computers & Peripherals and Office Electronics,Apple Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4004205
+ALAB,ASTERA LABS INC,,score,S&P Global ESG Score (Sustainable1),,,,,
+CDNS,CADENCE DESIGN,49.0,score,S&P Global ESG Score (Sustainable1),2026-11-16,46.0,SOF Software,Cadence Design Systems Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4963284
+CHKP,CHECK POINT SOFT,34.0,score,"S&P Global CSA Score 2024 (CSA Participant, DJSI rebalancing)",2024-11-22,34.0,,Check Point Software Technologies Ltd.,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+NET,CLOUDFLARE INC-A,38.0,score,S&P Global ESG Score (Sustainable1),2026-07-09,33.0,TSV IT services,Cloudflare Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4586618
+COHR,COHERENT CORP,33.0,score,"S&P Global CSA Score 2024 (Public Assessment, DJSI rebalancing)",2024-11-22,33.0,,Coherent Corp.,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+GLW,CORNING INC,41.0,score,"S&P Global CSA Score 2024 (Public Assessment, DJSI rebalancing)",2024-11-22,41.0,,Corning Incorporated,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+CRDO,CREDO TECHNOLOGY,,score,S&P Global ESG Score (Sustainable1),,,,,
+CRWD,CROWDSTRIKE HO-A,25.0,score,S&P Global ESG Score (Sustainable1),2025-08-11,19.0,SOF Software,CrowdStrike Holdings Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=12917530
+DDOG,DATADOG INC-A,26.0,score,S&P Global ESG Score (Sustainable1),2026-02-16,20.0,SOF Software,Datadog Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5222696
+DELL,DELL TECHN-C,47.0,score,S&P Global ESG Score (Sustainable1),2026-01-28,40.0,THQ Computers & Peripherals and Office Electronics,Dell Technologies Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4625099
+P,EVERPURE INC-A,54.0,score,S&P Global ESG Score (Sustainable1),2025-12-24,53.0,THQ Computers & Peripherals and Office Electronics,Everpure Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4972136
+FFIV,F5 INC,29.0,score,S&P Global ESG Score (Sustainable1),2026-09-29,23.0,CMT Communications Equipment,F5 Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4135450
+HPE,HEWLETT PACKA,57.0,score,S&P Global ESG Score (Sustainable1),2026-03-20,54.0,THQ Computers & Peripherals and Office Electronics,Hewlett Packard Enterprise Company,https://www.spglobal.com/sustainable1/en/scores/results?cid=4641383
+HPQ,HP INC,73.0,score,S&P Global ESG Score (Sustainable1),2026-02-06,73.0,THQ Computers & Peripherals and Office Electronics,HP Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=105223
+INTU,INTUIT INC,57.0,score,S&P Global ESG Score (Sustainable1),2026-10-01,55.0,SOF Software,Intuit Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4048157
+JBL,JABIL INC,49.0,score,S&P Global ESG Score (Sustainable1),2025-07-18,44.0,ITC Electronic Equipment Instruments & Components,Jabil Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4069059
+KEYS,KEYSIGHT TEC,46.0,score,"S&P Global CSA Score 2024 (CSA Participant, DJSI rebalancing)",2024-11-22,46.0,,"Keysight Technologies, Inc.",https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+KLAC,KLA CORP,57.0,score,"S&P Global CSA Score 2024 (CSA Participant, DJSI rebalancing)",2024-11-22,57.0,,KLA Corporation,https://portal.s1.spglobal.com/survey/documents/2024%20CSA%20Scores%20for%20DJSI%20Rebalance.pdf
+MCHP,MICROCHIP TECH,39.0,score,S&P Global ESG Score (Sustainable1),2026-10-19,33.0,SEM Semiconductors & Semiconductor Equipment,Microchip Technology Incorporated,https://www.spglobal.com/sustainable1/en/scores/results?cid=4133448
+MSI,MOTOROLA SOLUTIO,43.0,score,S&P Global ESG Score (Sustainable1),2026-10-08,41.0,CMT Communications Equipment,Motorola Solutions Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4280272
+NTAP,NETAPP INC,,score,S&P Global ESG Score (Sustainable1),,,,,
+NXPI,NXP SEMICONDUCTO,,score,S&P Global ESG Score (Sustainable1),,,,,
+ON,ON SEMICONDUCTOR,,score,S&P Global ESG Score (Sustainable1),,,,,
+ORCL,ORACLE CORP,35.0,score,S&P Global ESG Score (Sustainable1),2026-09-10,31.0,SOF Software,Oracle Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4041363
+PLTR,PALANTIR TECHN-A,24.0,score,S&P Global ESG Score (Sustainable1),2026-09-09,17.0,SOF Software,Palantir Technologies Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5148548
+PTC,PTC INC,,score,S&P Global ESG Score (Sustainable1),,,,,
+QCOM,QUALCOMM INC,57.0,score,S&P Global ESG Score (Sustainable1),2025-10-27,56.0,SEM Semiconductors & Semiconductor Equipment,QUALCOMM Incorporated,https://www.spglobal.com/sustainable1/en/scores/results?cid=4062496
+SHOP,SHOPIFY INC - A,31.0,score,S&P Global ESG Score (Sustainable1),2026-08-12,24.0,TSV IT services,Shopify Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4421687
+SWKS,SKYWORKS SOLUTIO,,score,S&P Global ESG Score (Sustainable1),,,,,
+SNOW,SNOWFLAKE INC,33.0,score,S&P Global ESG Score (Sustainable1),2026-08-25,25.0,TSV IT services,Snowflake Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5285926
+SNPS,SYNOPSYS INC,45.0,score,S&P Global ESG Score (Sustainable1),2026-10-05,41.0,SOF Software,Synopsys Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4089979
+TDY,TELEDYNE TECH,,score,S&P Global ESG Score (Sustainable1),,,,,
+TER,TERADYNE INC,36.0,score,S&P Global ESG Score (Sustainable1),2025-12-03,29.0,SEM Semiconductors & Semiconductor Equipment,Teradyne Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4071231
+TXN,TEXAS INSTRUMENT,40.0,score,S&P Global ESG Score (Sustainable1),2025-12-29,36.0,SEM Semiconductors & Semiconductor Equipment,Texas Instruments Incorporated,https://www.spglobal.com/sustainable1/en/scores/results?cid=4112734
+TSEM,TOWER SEMICONDCT,,score,S&P Global ESG Score (Sustainable1),,,,,
+TWLO,TWILIO INC - A,42.0,score,S&P Global ESG Score (Sustainable1),2026-09-18,35.0,TSV IT services,Twilio Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4757889
+ZM,ZOOM COMMUNICATI,31.0,score,S&P Global ESG Score (Sustainable1),2026-11-04,25.0,SOF Software,Zoom Communications Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5248785
+ZS,ZSCALER INC,44.0,score,S&P Global ESG Score (Sustainable1),2025-12-31,41.0,SOF Software,Zscaler Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5174695
