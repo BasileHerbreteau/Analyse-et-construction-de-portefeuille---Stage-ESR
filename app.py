@@ -1367,7 +1367,7 @@ with tabs[8]:
   sur les titres américains (deux tiers de l'univers) n'est pas prise en compte.
 - Upside, croissance LT du BPA et PEG reposent sur le consensus des analystes : prévisions structurellement
   optimistes, parfois anciennes ; le PEG perd son sens quand la croissance attendue est faible ou négative.
-- Prime de risque implicite calculée par Bloomberg selon son propre modèle : non vérifiable.
+- Prime de risque implicite fournie toute faite dans l'Excel : méthode de calcul non communiquée, impossible à recalculer.
 - Sous-industries GICS de 1 ou 2 titres : comparaisons entre pairs fragiles, malgré le rapprochement vers le secteur.
 
 **ESG**
