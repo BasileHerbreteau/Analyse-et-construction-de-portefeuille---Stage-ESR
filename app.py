@@ -1372,8 +1372,6 @@ with tabs[9]:
 **Données**
 - Une seule date d'observation, sans historique de prix : volatilités estimées sur 3 rendements seulement,
   corrélations supposées (structure par blocs) et non estimées.
-- Ni capitalisation ni liquidité dans le fichier : la capitalisation, ajoutée après coup depuis une source externe,
-  n'intervient pas dans la construction ; liquidité, capacité et coûts de transaction ne sont pas mesurés.
 - Rendements en devise locale (convention Bloomberg) : pour un investisseur en euros, la variation du dollar
   sur les titres américains (deux tiers de l'univers) n'est pas prise en compte.
 - Upside, croissance LT du BPA et PEG reposent sur le consensus des analystes : prévisions structurellement
@@ -1382,8 +1380,6 @@ with tabs[9]:
 - Sous-industries GICS de 1 ou 2 titres : comparaisons entre pairs fragiles, malgré le rapprochement vers le secteur.
 
 **ESG**
-- Scores relatifs à l'industrie, issus de deux sources (pages S&P Global, Bloomberg) et de dates différentes ;
-  titres non notés exclus du filtre ESG.
 - Un autre fournisseur (MSCI, Sustainalytics) peut classer différemment : les notations ESG divergent fortement.
 - Médiane ESG d'une sous-industrie de 2 ou 3 titres peu robuste.
 """)
@@ -1396,7 +1392,6 @@ with tabs[9]:
 - Aucun backtest, faute d'historique des données : les régressions de pertinence sont en coupe, à une même
   date ; le pouvoir prédictif du score n'est pas démontré.
 - Hypothèse de loi normale pour la volatilité : les risques extrêmes (queues épaisses) sont sous-estimés.
-- Rule of 40 conçue pour les éditeurs de logiciels : son seuil de 40 a moins de sens pour les télécoms ou le matériel.
 
 **Portefeuille**
 - La maximisation du Sharpe amplifie les erreurs d'estimation : l'optimiseur surpondère les titres dont le
