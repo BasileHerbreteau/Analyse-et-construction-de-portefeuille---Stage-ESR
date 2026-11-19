@@ -27,6 +27,25 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
 * Comparaison avec un portefeuille pondéré par la capitalisation et taille des sociétés détenues (capitalisation
   médiane, petites capitalisations dont le poids serait à revoir en pratique).
 
+### Onglet 9 · Allocation dynamique (exercice séparé : *Exercice allocation 261113*)
+* Track record du 01/01/2026 au 30/10/2026 d'un portefeuille sur 29 sous-jacents (indices sectoriels STOXX,
+  Russell 2000, ETF) : 20 % maximum par sous-jacent, 10 réallocations au plus (allocation de départ non comptée).
+* Optimum exact ex post : sur chaque période, 20 % sur les 5 sous-jacents qui montent le plus ; dates choisies par
+  programmation dynamique (optimum global, contrôlé par recherche exhaustive et tirages aléatoires).
+* Comparaison avec l'équipondéré, le meilleur portefeuille sans réallocation et l'allocation d'exemple du fichier ;
+  périodes de détention, contributions, gain apporté par chaque réallocation, frais de transaction.
+* Classeur Excel `resultats/track_record_allocation_dynamique.xlsx` : track record recalculé par formules (poids et
+  dates modifiables), régénéré par `python export_allocation_excel.py`.
+
+| 01/01 – 30/10/2026 | Dynamique optimal | Statique optimal (0 réallocation) | Exemple du fichier | Équipondéré (29) |
+| --- | --- | --- | --- | --- |
+| Performance totale | 189,1 % | 28,7 % | 4,0 % | 7,8 % |
+| Volatilité annualisée | 16,4 % | 16,6 % | 15,0 % | 11,6 % |
+| Perte maximale | -5,2 % | -7,2 % | -12,6 % | -8,8 % |
+
+Optimum ex post (prix futurs connus) : borne haute permise par les contraintes, pas une stratégie investissable.
+Indices de prix en devise de cotation, sans frais ; poids plafonnés à chaque date d'allocation puis libres de dériver.
+
 ## Méthode en bref
 
 * **Données** : les critères financiers viennent uniquement du fichier Excel. Les valeurs extrêmes sont écrêtées aux
@@ -90,4 +109,5 @@ streamlit run app.py
 Déploiement : [share.streamlit.io](https://share.streamlit.io) → *Create app* → ce dépôt, branche `main`, fichier `app.py`.
 
 Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations), `analytics.py` (volatilité, frontière), `scoring.py`
-(z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection, optimisation).
+(z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection, optimisation), `allocation.py` (allocation dynamique :
+optimisation et track record), `tab_allocation.py` (onglet 9), `export_allocation_excel.py` (classeur Excel).
