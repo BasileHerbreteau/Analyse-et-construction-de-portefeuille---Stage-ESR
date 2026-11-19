@@ -987,7 +987,9 @@ historique ne peut pas être estimée. Un test sur ces 3 sous-périodes donne un
 d'une sous-industrie, 0,19 au sein d'un secteur et −0,19 entre secteurs : la valeur négative traduit le bruit d'un
 échantillon de 3 points, pas une réalité économique. Le modèle retient donc une **structure par blocs** : corrélation
 **{RHO[0]:.2f}** entre titres de la même sous-industrie, **{RHO[1]:.2f}** au sein d'un secteur, **{RHO[2]:.2f}**
-entre secteurs. Le tableau ci-dessous mesure la sensibilité des conclusions à ces hypothèses.
+entre secteurs. Ces niveaux sont élevés à dessein : les valeurs technologiques et de communication partagent des
+moteurs communs (cycle de l'IA, taux d'intérêt, appétit pour la croissance). Le tableau ci-dessous mesure la
+sensibilité des conclusions à ces hypothèses.
 """)
     sens = []
     for nm, rh in an.RHO_SETS.items():

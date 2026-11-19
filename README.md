@@ -34,6 +34,8 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
   13/11/2026.
 * **Volatilité** : écart-type annualisé de trois rendements sur des périodes disjointes, rapproché de la médiane de la
   sous-industrie pour réduire le bruit.
+* **Corrélations** : faute d'historique, structure par blocs supposée (0,70 entre titres d'une même sous-industrie,
+  0,50 au sein d'un secteur, 0,35 sinon), élevée car ces valeurs partagent des moteurs communs ; sensibilité testée.
 * **Critère agrégé** : chaque facteur est comparé aux titres de la même sous-industrie, puis les quatre piliers sont
   moyennés à poids égal.
 * **Rendement attendu** : la prime de risque implicite donne le niveau ; le score ajoute un alpha proportionnel à la
@@ -50,10 +52,10 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
 
 | | Équipondéré (99) | Sans ESG | Avec filtre ESG | Pondéré par la capitalisation (99) |
 | --- | --- | --- | --- | --- |
-| Rendement attendu | 11,6 % | 18,9 % | 16,8 % | 12,9 % |
-| Volatilité estimée | 29,3 % | 24,1 % | 26,4 % | 30,6 % |
-| Sharpe ex ante | 0,40 | 0,78 | 0,63 | 0,42 |
-| Capitalisation médiane des lignes | 40 Md$ | 141 Md$ | 42 Md$ | 40 Md$ |
+| Rendement attendu | 11,6 % | 19,0 % | 16,8 % | 12,9 % |
+| Volatilité estimée | 32,8 % | 27,0 % | 29,3 % | 33,5 % |
+| Sharpe ex ante | 0,36 | 0,71 | 0,57 | 0,39 |
+| Capitalisation médiane des lignes | 40 Md$ | 145 Md$ | 42 Md$ | 40 Md$ |
 
 Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes.
 

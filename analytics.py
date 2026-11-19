@@ -12,8 +12,10 @@ import pandas as pd
 from scipy.optimize import minimize
 
 # Hypothèses de corrélation (même sous-industrie, même secteur, secteurs différents) et jeux de sensibilité
-RHO_CENTRAL = (0.60, 0.40, 0.25)
-RHO_SETS = {"Basse": (0.40, 0.25, 0.10), "Centrale": RHO_CENTRAL, "Haute": (0.80, 0.60, 0.40)}
+# Corrélations supposées (même sous-industrie, même secteur, autres) : niveaux élevés, les valeurs technologiques
+# et de communication partageant des moteurs communs (IA, taux, appétit pour la croissance)
+RHO_CENTRAL = (0.70, 0.50, 0.35)
+RHO_SETS = {"Basse": (0.60, 0.40, 0.25), "Centrale": RHO_CENTRAL, "Haute": (0.80, 0.60, 0.45)}
 RF_DEFAULT = 4.32  # rendement du T-bill américain 3 mois au 13/11/2026 (FRED, série DGS3MO)
 RF_SOURCE = "https://fred.stlouisfed.org/series/DGS3MO"
 
