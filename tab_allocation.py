@@ -94,7 +94,8 @@ def render(show, recap):
     navs, segs = {}, {}
     for key, w in ports.items():
         navs[key], segs[key] = al.backtest(px, w, cost_bps=cost if key in ("opt", "ex") else 0.0)
-    mets = {key: al.metrics(nav, px) for key, nav in navs.items()}
+    rf = al.rf_estr()
+    mets = {key: al.metrics(nav, px, rf=rf) for key, nav in navs.items()}
     m, e = mets["opt"], mets["ew"]
 
     # ------------------------------------------------------------------ Indicateurs clés
@@ -136,7 +137,9 @@ def render(show, recap):
     disp.loc["Rotation cumulée (achats + ventes)"] = [
         _fmt_pct(segs[kk]["Rotation"].sum(), 0) if segs[kk]["Rotation"].notna().any() else "-" for kk in mets]
     st.dataframe(disp, width="stretch")
-    st.caption("Volatilité : rendements des jours de cotation × √252. Sharpe calculé avec un taux sans risque de 0 %. "
+    st.caption("Volatilité : rendements des jours de cotation × √252. Sharpe calculé avec le taux sans risque de la "
+               f"période : €STR moyen du 01/01 au 30/10/2026, soit {_fmt_pct(rf, 2)} en taux annuel ([source]"
+               f"({al.ESTR_SOURCE}), paliers conformes aux décisions de la BCE). "
                "Statique optimal : meilleur portefeuille sans réallocation, mêmes règles. "
                + (f"Frais de {cost:.0f} pb déduits pour le dynamique et l'exemple." if cost else "Performances brutes de frais."))
 
@@ -240,8 +243,9 @@ def render(show, recap):
         f"<b>Rotation</b> : {sol.n_rebal} réallocations, presque toutes complètes (rotation cumulée "
         f"{_fmt_pct(turnover, 0)}) ; sous-jacents les plus souvent retenus : "
         + ", ".join(f"{t} ({n}×)" for t, n in best_tickers.head(4).items()) + ".",
-        f"<b>Frais</b> : à 10 pb du montant échangé, la performance passerait de {_fmt_pct(perf0, 0)} à "
-        f"{_fmt_pct(perf10, 0)} : les frais ne changent pas la conclusion.",
+        f"<b>Frais</b> : à 10 pb (0,10 %) du montant échangé, chaque réallocation coûte environ 0,19 % du portefeuille "
+        f"(on vend et rachète presque tout). Au total, la valeur finale baisse de {_fmt_pct(1 - (1 + perf10) / (1 + perf0))}"
+        f", soit une performance de {_fmt_pct(perf10, 0)} au lieu de {_fmt_pct(perf0, 0)}.",
     ], methode=[
         "Entre deux dates, le portefeuille est conservé tel quel (les poids dérivent avec les prix) ; le plafond de 20 % "
         "s'applique à chaque date d'allocation, comme dans les règles d'indices.",

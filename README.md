@@ -45,6 +45,8 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
 
 Optimum ex post (prix futurs connus) : borne haute permise par les contraintes, pas une stratégie investissable.
 Indices de prix en devise de cotation, sans frais ; poids plafonnés à chaque date d'allocation puis libres de dériver.
+Taux sans risque du ratio de Sharpe : €STR moyen de la période (2,08 %, soit 2,11 % en taux annuel équivalent ; moyennes
+mensuelles relevées sur globalmacro.expert, paliers conformes aux décisions de la BCE).
 
 ## Méthode en bref
 

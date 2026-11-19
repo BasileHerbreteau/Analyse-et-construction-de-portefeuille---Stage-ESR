@@ -132,8 +132,8 @@ def main():
               ("Nombre maximum de réallocations", al.MAX_REBAL, "0", "Consigne (départ non compté)"),
               ("Base de la valeur liquidative", 100, "0", "Convention"),
               ("Jours de cotation par an", al.ANN_DAYS, "0", "Convention d'annualisation de la volatilité"),
-              ("Taux sans risque (annuel)", 0.0, PCT2,
-               "Hypothèse : 0 % par défaut ; saisir le taux €STR moyen de la période pour un Sharpe au sens strict")]
+              ("Taux sans risque (annuel)", None, PCT2,
+               "€STR moyen du 01/01 au 30/10/2026, base 360, annualisé (tableau €STR plus bas)")]
     ws.cell(4, 1, "Paramètres")
     ws.cell(4, 2, "Valeur")
     ws.cell(4, 3, "Origine")
@@ -425,6 +425,36 @@ def main():
                            "borne haute atteignable sous les contraintes, pas une stratégie investissable.")
     note(ws, f"A{rn + 2}", "Le contrôle vérifie : nombre de réallocations ≤ 10, poids ≤ 20 % à chaque date d'allocation, "
                            "somme des poids = 100 % à chaque date.")
+
+    # Taux sans risque : €STR moyen mensuel de la période
+    re0 = rn + 7
+    ws.cell(re0, 1, "Taux sans risque : €STR moyen mensuel")
+    ws.cell(re0, 2, "€STR moyen")
+    ws.cell(re0, 3, "Jours dans la période")
+    style_header(ws, re0, 1, 3)
+    months = list(al.ESTR_MONTHLY.items())
+    for i, (m, v) in enumerate(months):
+        r = re0 + 1 + i
+        c = ws.cell(r, 1, pd.Timestamp(m + "-01").to_pydatetime())
+        c.number_format, c.font = "mmmm yyyy", F_N
+        c = ws.cell(r, 2, v / 100)
+        c.number_format, c.font = "0.000%", F_IN
+        c = ws.cell(r, 3, f"=MIN(EOMONTH(A{r},0)+1,{P_END})-MAX(A{r},{P_START})")
+        c.number_format, c.font = "0", F_N
+    r1 = re0 + len(months)
+    rt = r1 + 1
+    ws.cell(rt, 1, "Moyenne de la période (pondérée par les jours)").font = F_B
+    c = ws.cell(rt, 2, f"=SUMPRODUCT(B{re0 + 1}:B{r1},C{re0 + 1}:C{r1})/SUM(C{re0 + 1}:C{r1})")
+    c.number_format, c.font = "0.000%", F_B
+    c = ws.cell(rt, 3, f"=SUM(C{re0 + 1}:C{r1})")
+    c.number_format, c.font = "0", F_B
+    note(ws, f"A{rt + 1}", f"Source : moyennes mensuelles de l'€STR (série quotidienne de la BCE) relevées le 19/11/2026 sur "
+                           f"{al.ESTR_SOURCE} ; paliers conformes aux décisions de la BCE (taux de dépôt 2,00 %, puis "
+                           "2,25 % le 17/06 et 2,50 % le 16/09/2026).")
+    note(ws, f"A{rt + 2}", "Taux annuel = (1 + Σ €STR × jours / 360)^(365 / jours de la période) − 1 : même annualisation "
+                           "que la performance des portefeuilles.")
+    ws["B11"] = (f"=(1+SUMPRODUCT(B{re0 + 1}:B{r1},C{re0 + 1}:C{r1})/360)^(365/({P_END}-{P_START}))-1")
+    ws["B11"].font, ws["B11"].number_format = F_N, PCT2
     ws.column_dimensions["A"].width = 40
     for c in range(2, 6):
         ws.column_dimensions[L(c)].width = 19
@@ -499,10 +529,11 @@ def main():
 
     # Frais de transaction
     r += 2
-    ws.cell(r, 1, "Frais de transaction (pb du montant échangé)")
+    ws.cell(r, 1, "Frais de transaction (pb du montant échangé ; 1 pb = 0,01 %)")
     ws.cell(r, 2, "Performance totale nette")
-    ws.cell(r, 3, "Coût cumulé (points de performance)")
-    style_header(ws, r, 1, 3)
+    ws.cell(r, 3, "Écart de performance (points, base 100)")
+    ws.cell(r, 4, "Coût en % de la valeur finale")
+    style_header(ws, r, 1, 4)
     r_gross = r + 1
     for bps in [0, 5, 10, 20, 50]:
         r += 1
@@ -510,10 +541,16 @@ def main():
         ws.cell(r, 1, bps).font = F_N
         c = ws.cell(r, 2, float(nav.iloc[-1] / 100 - 1))
         c.number_format, c.font = PCT, F_IN
-        ws.cell(r, 3, f"=$B${r_gross}-B{r}").number_format = PCT
-        ws.cell(r, 3).font = F_N
-    note(ws, f"A{r + 1}", "Frais appliqués à chaque réallocation sur Σ|nouveau poids − poids dérivé| (achats + ventes) ; "
-                          "allocation optimale brute conservée.")
+        c = ws.cell(r, 3, f"=($B${r_gross}-B{r})*{P_BASE}")
+        c.number_format, c.font = '0.0" pts";-0.0" pts";"-"', F_N
+        c = ws.cell(r, 4, f"=1-(1+B{r})/(1+$B${r_gross})")
+        c.number_format, c.font = PCT2 + ';-0.00%;"-"', F_N
+    note(ws, f"A{r + 1}", "Frais payés à chaque réallocation sur le montant échangé, Σ|nouveau poids − poids dérivé| "
+                          "(ventes + achats) ; allocation optimale brute conservée.")
+    note(ws, f"A{r + 2}", "Lecture (10 pb) : chaque réallocation échange environ 190 % du portefeuille (≈ 95 % vendus, "
+                          "≈ 95 % rachetés), soit ≈ 0,19 % de frais ; sur 10 réallocations, la valeur finale baisse "
+                          "d'environ 1,9 %, ce qui fait 5,4 points sur une VL passée de 100 à 289.")
+    r += 1
 
     strict = Path(__file__).parent / "data" / "variante_plafond_quotidien.csv"
     if strict.exists():
@@ -591,6 +628,9 @@ def main():
         ("Portefeuilles de comparaison", "Statique optimal : meilleur portefeuille sans réallocation (mêmes règles). "
                                          "Exemple du fichier : allocation fournie à titre d'exemple. Équipondéré : 1/29 "
                                          "sur chaque sous-jacent, sans réallocation."),
+        ("Taux sans risque", "€STR moyen du 01/01 au 30/10/2026 (2,08 % en moyenne, 2,11 % en taux annuel équivalent), "
+                             "taux de référence du marché monétaire en euros, cohérent avec un univers majoritairement "
+                             "européen. Il sert au ratio de Sharpe."),
         ("Lecture", "Le résultat est un optimum ex post, construit avec la connaissance des prix futurs : il mesure ce "
                     "qu'il était possible de gagner sous les contraintes, pas ce qu'une stratégie aurait gagné en temps "
                     "réel."),

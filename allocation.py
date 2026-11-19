@@ -25,6 +25,14 @@ START, END = pd.Timestamp("2026-01-01"), pd.Timestamp("2026-10-30")
 CAP, MAX_REBAL = 0.20, 10
 ANN_DAYS = 252  # jours de cotation par an pour annualiser la volatilité
 
+# Taux sans risque : €STR (taux au jour le jour de la zone euro), moyennes mensuelles 2026 en %, relevées le
+# 19/11/2026 sur globalmacro.expert (série quotidienne publiée par la BCE). Paliers cohérents avec les décisions de la
+# BCE : taux de dépôt 2,00 % jusqu'au 16/06/2026, 2,25 % à partir du 17/06, 2,50 % à partir du 16/09/2026.
+ESTR_MONTHLY = {"2026-01": 1.932, "2026-02": 1.931, "2026-03": 1.932, "2026-04": 1.932, "2026-05": 1.931,
+                "2026-06": 2.045, "2026-07": 2.184, "2026-08": 2.187, "2026-09": 2.314, "2026-10": 2.440}
+ESTR_SOURCE = "https://globalmacro.expert/rates/estr/"
+ECB_RATES_SOURCE = "https://euribor-rates.info/en/ecb-interest-rates/"
+
 # Libellés indicatifs (codes Bloomberg du fichier). Zone : EUR = indices et ETF cotés en euros, USD = cotés en dollars.
 INFO = {
     "SXKP Index": ("STOXX Europe 600 Télécommunications", "Europe", "EUR"),
@@ -268,6 +276,20 @@ def backtest(px: pd.DataFrame, weights: pd.DataFrame, start=START, end=END, cost
 
 def equal_weight(px: pd.DataFrame, start=START) -> pd.DataFrame:
     return pd.DataFrame({start: pd.Series(1.0 / px.shape[1], index=px.columns)})
+
+
+def estr_days(start=START, end=END) -> pd.Series:
+    """Nombre de jours d'intérêts de chaque mois dans la période (du départ inclus à la fin exclue)."""
+    days = pd.date_range(start, end - pd.Timedelta(days=1), freq="D")
+    return pd.Series(1, index=days).groupby(days.strftime("%Y-%m")).sum()
+
+
+def rf_estr(start=START, end=END) -> float:
+    """Taux sans risque annuel équivalent sur la période : €STR moyen placé en intérêts simples (base 360, convention
+    du marché monétaire), puis annualisé sur 365 jours comme la performance des portefeuilles."""
+    d = estr_days(start, end)
+    period = sum(ESTR_MONTHLY[m] / 100 * n for m, n in d.items()) / 360
+    return (1 + period) ** (365 / (end - start).days) - 1
 
 
 def metrics(nav: pd.Series, px: pd.DataFrame, rf: float = 0.0) -> dict:
