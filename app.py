@@ -5,6 +5,7 @@ Lancer en local :  streamlit run app.py
 from __future__ import annotations
 
 import base64
+import importlib
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,11 @@ import analytics as an
 import data_utils as du
 import portfolio as pf
 import scoring as sc
+
+# Après une mise à jour du dépôt, Streamlit Community Cloud peut relancer app.py en gardant l'ancienne
+# version des modules en mémoire : on les recharge pour que le code reste cohérent.
+for _mod in (an, du, sc, pf):
+    importlib.reload(_mod)
 
 st.set_page_config(page_title="Univers d'actions – Analyse et portefeuille", page_icon="📊", layout="wide")
 
@@ -202,6 +208,8 @@ EW = pd.Series(1 / len(full), index=full.index)
 CAPS = du.load_caps()
 HAS_CAP = CAPS is not None and full["ticker"].isin(CAPS["ticker"]).all()
 CAPW_NAME = "Pondéré par la capitalisation (99 titres)"
+TAN_LBL = "Portefeuille tangent (Sharpe maximal)"
+MKT_LBL = "Portefeuille de marché (pondéré par la capitalisation)"
 if HAS_CAP:
     _c = CAPS.set_index("ticker")
     full["mcap"] = full["ticker"].map(_c["mcap_usd_bn"])
@@ -926,21 +934,45 @@ with tabs[6]:
                                      hovertemplate="%{text}<br>vol %{x:.1f} %<br>rdt %{y:.1f} %<extra></extra>"))
         fig.add_trace(go.Scatter(x=front["vol"], y=front["ret"], mode="lines", name=f"Frontière (≤ {CAP:.0%} par titre)",
                                  line=dict(color="#0b0b0b", width=2.5)))
+        x_max = min(df["vol"].max() * 1.05, 120)
+        s_t = None
+        if w_ms is not None:
+            r_t, v_t = an.port_stats(w_ms, mu, cov)
+            s_t = r_t / v_t
+            x_end = min(x_max, max(mu.max(), r_t) * 1.05 / s_t)
+            fig.add_trace(go.Scatter(x=[0, x_end], y=[0, s_t * x_end], mode="lines",
+                                     name=f"Capital Market Line (pente = Sharpe {s_t:.2f})",
+                                     line=dict(color="#0b0b0b", width=1.5, dash="dash")))
+        UNFILTERED = len(df) == len(full)
         pts = [("Équipondéré", ew, "diamond", C_GREY)]
         if w_mv is not None:
-            pts.append(("Variance minimale", w_mv, "square", C_TEAL))
+            pts.append(("Variance minimale", w_mv, "square", C_PALE))
         if w_ms is not None:
-            pts.append(("Sharpe maximal", w_ms, "star", C_RED))
+            pts.append((TAN_LBL, w_ms, "star-diamond", "#0b0b0b"))
+        if UNFILTERED:
+            for n_, colr in zip(ports, [C_RED, C_TEAL]):
+                pts.append((f"Portefeuille {n_[0].lower() + n_[1:]}", ports[n_]["Poids"].reindex(df.index).fillna(0.0)
+                            .to_numpy(), "star", colr))
+            if HAS_CAP:
+                pts.append((MKT_LBL, W_CAP.reindex(df.index).to_numpy(), "square-open", C_NAVY))
         for name, w, sym, col in pts:
             r_, v_ = an.port_stats(w, mu, cov)
             fig.add_trace(go.Scatter(x=[v_], y=[r_], mode="markers", name=name,
-                                     marker=dict(symbol=sym, size=15, color=col, line=dict(color="white", width=1.5))))
+                                     marker=dict(symbol=sym, size=15, color=col,
+                                                 line=dict(color=col, width=3) if sym.endswith("-open")
+                                                 else dict(color="white", width=1.5))))
         fig.update_layout(template=TEMPLATE, height=600, xaxis_title=lab("vol"), yaxis_title=lab("mu"),
-                          title="Titres, portefeuille équipondéré et frontière efficiente",
-                          xaxis_range=[0, min(df["vol"].max() * 1.05, 120)])
+                          title="Titres, frontière efficiente et Capital Market Line", xaxis_range=[0, x_max])
         show(fig)
+        st.caption("Rendements en excès du taux sans risque : la Capital Market Line part de l'origine (actif sans "
+                   "risque) et touche la frontière au portefeuille tangent, qui est le portefeuille de Sharpe maximal "
+                   f"avec {CAP:.0%} maximum par titre. Chaque point de la droite combine l'actif sans risque et ce "
+                   "portefeuille."
+                   + ("" if UNFILTERED else " Portefeuilles construits et portefeuille de marché affichés sans filtre "
+                                            "actif."))
         rows = []
-        for name, w in [("Équipondéré", ew), ("Variance minimale", w_mv), ("Sharpe maximal", w_ms)]:
+        for name, w, *_ in [("Équipondéré", ew), ("Variance minimale", w_mv), (TAN_LBL, w_ms)] + \
+                [p_ for p_ in pts if p_[0] not in ("Équipondéré", "Variance minimale", TAN_LBL)]:
             if w is None:
                 continue
             r_, v_ = an.port_stats(w, mu, cov)
@@ -973,23 +1005,36 @@ entre secteurs. Le tableau ci-dessous mesure la sensibilité des conclusions à 
     _fr = []
     if len(df) * CAP >= 1:
         _rw = pd.DataFrame(rows).set_index("Portefeuille")
-        if {"Équipondéré", "Sharpe maximal"} <= set(_rw.index):
-            e_, m_ = _rw.loc["Équipondéré"], _rw.loc["Sharpe maximal"]
+        if {"Équipondéré", TAN_LBL} <= set(_rw.index):
+            e_, m_ = _rw.loc["Équipondéré"], _rw.loc[TAN_LBL]
             _fr.append(f"<b>Frontière</b> : l'équipondéré ({e_['Rendement attendu (%)']:.1f} % pour "
                        f"{e_['Volatilité (%)']:.1f} % de volatilité) se situe nettement sous la frontière. Le portefeuille "
-                       f"de Sharpe maximal atteint {m_['Rendement attendu (%)']:.1f} % pour {m_['Volatilité (%)']:.1f} % "
+                       f"tangent (Sharpe maximal) atteint {m_['Rendement attendu (%)']:.1f} % pour {m_['Volatilité (%)']:.1f} % "
                        f"(Sharpe {m_['Sharpe']:.2f} contre {e_['Sharpe']:.2f}) avec {int(m_['Lignes'])} lignes.")
         if "Variance minimale" in _rw.index:
             v_ = _rw.loc["Variance minimale"]
             _fr.append(f"<b>Variance minimale</b> : {v_['Volatilité (%)']:.1f} % de volatilité, obtenue en concentrant les "
                        "poids sur les titres les moins volatils et en diversifiant entre secteurs.")
+        _ours = [r_ for r_ in _rw.index if r_.startswith("Portefeuille ") and r_ not in (TAN_LBL, MKT_LBL)]
+        if TAN_LBL in _rw.index and _ours:
+            t_ = _rw.loc[TAN_LBL]
+            _fr.append(f"<b>Capital Market Line</b> : sa pente est le Sharpe du portefeuille tangent ({t_['Sharpe']:.2f}). "
+                       + " ; ".join(f"{o_[13].upper() + o_[14:]} : Sharpe {_rw.loc[o_, 'Sharpe']:.2f}" for o_ in _ours)
+                       + " : nos portefeuilles restent sous la droite, c'est le coût des quotas par sous-industrie et de "
+                         "la présélection de 30 titres (et du filtre ESG).")
+            if MKT_LBL in _rw.index:
+                _fr.append(f"<b>Portefeuille de marché</b> (pondéré par la capitalisation) : Sharpe "
+                           f"{_rw.loc[MKT_LBL, 'Sharpe']:.2f}, loin sous la CML. Dans le CAPM, le portefeuille de marché "
+                           "est le portefeuille tangent : l'écart signifie que nos rendements attendus s'écartent de "
+                           "l'équilibre implicite du marché, et c'est cet écart que la sélection cherche à exploiter.")
     recap(_recap7[0] + _fr + [f"Avec l'hypothèse centrale, le portefeuille sans ESG améliore le Sharpe ex ante de "
            f"{_sens.loc[1, 'Écart de Sharpe']:+.2f} par rapport à l'équipondéré ; l'écart reste positif sous les "
            f"hypothèses basse ({_sens.loc[0, 'Écart de Sharpe']:+.2f}) et haute ({_sens.loc[2, 'Écart de Sharpe']:+.2f})."
            if (_sens["Écart de Sharpe"] > 0).all() else
            "Le classement des portefeuilles dépend des hypothèses de corrélation : voir le tableau de sensibilité."],
           _recap7[1] + ["Covariance Σ = D·R·D : D = volatilités estimées, R = corrélations par blocs.",
-           "Frontière : minimisation de wᵀΣw pour chaque rendement cible, 0 ≤ w ≤ 5 %, Σw = 1 (SLSQP)."])
+           "Frontière : minimisation de wᵀΣw pour chaque rendement cible, 0 ≤ w ≤ 5 %, Σw = 1 (SLSQP).",
+           "Capital Market Line : rendement en excès = Sharpe du portefeuille tangent × volatilité."])
 
 # =========================================================================== #
 # 8. Portefeuille final
@@ -1011,6 +1056,10 @@ with tabs[7]:
     comp = pd.DataFrame(rows).set_index("Portefeuille").T
     cur = comp[f"Portefeuille {cur_label}"]
     ewc = comp.iloc[:, 0]
+    # portefeuille tangent de la frontière (99 titres, 5 % maximum par titre, sans quotas)
+    _, _, w_tan = frontier_cached(tuple(full["mu"].to_numpy(float)), tuple(COV_FULL.ravel()), len(full), CAP)
+    if w_tan is not None:
+        r_tan, v_tan = an.port_stats(w_tan, full["mu"].to_numpy(float), COV_FULL)
 
     if esg_on:
         n_res = int((P["Raison"] == "Repêché (diversification sectorielle)").sum())
@@ -1101,11 +1150,22 @@ with tabs[7]:
         fig.add_trace(go.Scatter(x=Pw["vol"], y=Pw["mu"], mode="markers", name="Titres retenus", text=Pw["ticker"],
                                  marker=dict(color=C_BLUE, size=6 + 300 * Pw["Poids"]),
                                  hovertemplate="%{text}<br>vol %{x:.1f} %<br>rdt %{y:.1f} %<extra></extra>"))
+        xy_ = {c_: (comp.loc["Volatilité estimée (%)", c_], comp.loc["Rendement attendu (%)", c_]) for c_ in comp.columns}
+        names_ = {c_: c_ for c_ in comp.columns}
+        if w_tan is not None:
+            xy_[TAN_LBL] = (v_tan, r_tan)
+            names_[TAN_LBL] = TAN_LBL + " – 99 titres"
+            x_end = min(full["vol"].max() * 1.05, 120, max(full["mu"].max(), r_tan) * 1.05 / (r_tan / v_tan))
+            fig.add_trace(go.Scatter(x=[0, x_end], y=[0, r_tan / v_tan * x_end], mode="lines",
+                                     name=f"Capital Market Line (pente {r_tan / v_tan:.2f})",
+                                     line=dict(color="#0b0b0b", width=1.5, dash="dash")))
+        if HAS_CAP:
+            names_[CAPW_NAME] = MKT_LBL
         marks_ = [(comp.columns[0], "diamond", C_GREY)] + list(zip(PF_COLS, ["star"] * 2, [C_RED, C_TEAL])) + \
+            ([(TAN_LBL, "star-diamond", "#0b0b0b")] if w_tan is not None else []) + \
             ([(CAPW_NAME, "square-open", C_NAVY)] if HAS_CAP else [])
         for col_name, sym, colr in marks_:
-            fig.add_trace(go.Scatter(x=[comp.loc["Volatilité estimée (%)", col_name]],
-                                     y=[comp.loc["Rendement attendu (%)", col_name]], mode="markers", name=col_name,
+            fig.add_trace(go.Scatter(x=[xy_[col_name][0]], y=[xy_[col_name][1]], mode="markers", name=names_[col_name],
                                      marker=dict(symbol=sym, size=18, color=colr,
                                                  line=dict(color=colr, width=3) if sym.endswith("-open")
                                                  else dict(color="white", width=1.5))))
@@ -1252,6 +1312,9 @@ with tabs[7]:
     recap([f"<b>Portefeuille {cur_label}</b> : {int(cur['Lignes'])} lignes, rendement attendu {cur['Rendement attendu (%)']:.1f} %, "
            f"volatilité {cur['Volatilité estimée (%)']:.1f} %, Sharpe ex ante {cur['Sharpe ex ante']:.2f} contre "
            f"{ewc['Sharpe ex ante']:.2f} pour l'équipondéré.",
+           (f"<b>Par rapport au portefeuille tangent</b> (Sharpe maximal sur les 99 titres, sans quotas) : Sharpe "
+            f"{r_tan / v_tan:.2f} ; le portefeuille {cur_label} en atteint {cur['Sharpe ex ante'] / (r_tan / v_tan):.0%}, "
+            f"en respectant les quotas de diversification." if w_tan is not None else ""),
            f"<b>Qualité</b> : score final moyen {cur['Score final moyen']:.2f} (équipondéré {ewc['Score final moyen']:.2f}) ; "
            f"{cur['Part passant la Rule of 40 (%)']:.0f} % des poids passent la Rule of 40 "
            f"(équipondéré {ewc['Part passant la Rule of 40 (%)']:.0f} %).",

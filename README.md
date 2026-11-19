@@ -22,7 +22,7 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
 ### Partie 3 · Portefeuille
 * Scores ESG S&P Global et position de chaque titre par rapport à sa sous-industrie.
 * Rendement attendu ex ante combinant la prime de risque du titre et son score.
-* Frontière efficiente et sensibilité aux hypothèses de corrélation.
+* Frontière efficiente, Capital Market Line et portefeuille tangent, sensibilité aux hypothèses de corrélation.
 * Portefeuille final, avec ou sans filtre ESG, comparé à l'équipondéré : poids, contributions au risque, composition.
 * Comparaison avec un portefeuille pondéré par la capitalisation et taille des sociétés détenues (capitalisation
   médiane, petites capitalisations dont le poids serait à revoir en pratique).
