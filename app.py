@@ -18,10 +18,12 @@ import analytics as an
 import data_utils as du
 import portfolio as pf
 import scoring as sc
+import allocation as al
+import tab_allocation as ta
 
 # Après une mise à jour du dépôt, Streamlit Community Cloud peut relancer app.py en gardant l'ancienne
 # version des modules en mémoire : on les recharge pour que le code reste cohérent.
-for _mod in (an, du, sc, pf):
+for _mod in (an, du, sc, pf, al, ta):
     importlib.reload(_mod)
 
 st.set_page_config(page_title="Univers d'actions – Analyse et portefeuille", page_icon="📊", layout="wide")
@@ -234,7 +236,7 @@ st.caption("Données : fichier « universe of stock 261113 » (99 titres, 17 col
 tabs = st.tabs([
     "1 · Univers", "2 · Rendement & risque", "3 · Valorisation & attentes", "4 · Critère agrégé",
     "5 · Comparaison avec la Rule of 40", "6 · ESG", "7 · Rendement attendu & frontière",
-    "8 · Portefeuille final", "Annexe",
+    "8 · Portefeuille final", "Annexe", "Bonus - Track record",
 ])
 # Au clic sur un onglet, la page revient au début de l'onglet (juste sous la barre figée).
 st.iframe("""<script>
@@ -1355,6 +1357,7 @@ with tabs[8]:
 | Corrélations | Structure par blocs {RHO[0]:.2f} / {RHO[1]:.2f} / {RHO[2]:.2f}, sensibilité dans l'onglet 7 |
 | Portefeuille | 30 titres : quotas par sous-industrie, score > médiane, Sharpe ex ante maximal, 5 % maximum par titre |
 | Filtre ESG | Score ESG > médiane de la sous-industrie ; repêchage des bons scores (> médiane) dont l'ESG ≥ médiane de l'univers, priorité aux sous-industries absentes |
+| Bonus · Track record | Exercice indépendant (fichier « Exercice allocation 261113 ») : 5 meilleurs sous-jacents à 20 % sur chaque période, dates choisies par programmation dynamique (optimum exact ex post, 10 réallocations au plus), détention sans rééquilibrage entre deux dates |
 | Capitalisations | Source externe (companiesmarketcap.com) : clôture du 13/11/2026 pour 38 titres, cours du 10 au 18/11 pour la plupart des autres ; utilisées seulement pour le portefeuille de référence pondéré par la capitalisation et la comparaison des tailles, pas dans la construction |
 """)
     st.subheader("Limites et angles morts")
@@ -1413,3 +1416,10 @@ with tabs[8]:
     st.subheader("Table complète")
     st.dataframe(df, hide_index=True, width="stretch")
     st.download_button("Télécharger (CSV)", df.to_csv(index=False).encode(), "univers_enrichi.csv", "text/csv")
+
+
+# =========================================================================== #
+# Bonus : track record d'un portefeuille dynamique (exercice indépendant, fichier « Exercice allocation 261113 »)
+# =========================================================================== #
+with tabs[9]:
+    ta.render(show, recap)
