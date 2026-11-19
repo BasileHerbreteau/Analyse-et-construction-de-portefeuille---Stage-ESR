@@ -1396,6 +1396,23 @@ with tabs[8]:
 - Performances N-1 et YTD du portefeuille : poids actuels appliqués au passé (biais rétrospectif), à lire comme
   une description et non comme une performance réalisable.
 """)
+    if HAS_CAP:
+        st.subheader("Capitalisations boursières : valeurs et sources")
+        _ct = CAPS.sort_values("mcap_usd_bn", ascending=False)[["ticker", "name", "mcap_usd_bn", "date_cours", "source",
+                                                                "note"]].fillna("")
+        _ct = _ct.rename(columns={"ticker": "Ticker", "name": "Société", "mcap_usd_bn": "Capitalisation (Md$)",
+                                  "date_cours": "Date du cours", "source": "Source", "note": "Remarque"})
+        st.dataframe(_ct, hide_index=True, width="stretch", height=420,
+                     column_config={"Capitalisation (Md$)": st.column_config.NumberColumn(format="%.2f"),
+                                    "Source": st.column_config.LinkColumn("Source", display_text=r"https?://(.+)")})
+        st.caption("Capitalisations en milliards de dollars, relevées le 19/11/2026 sur companiesmarketcap.com (pages de "
+                   "classement sectoriel ou page de la société), sauf Vend Marketplaces (StockAnalysis). Les pages de "
+                   "classement n'affichent pas de date : celle de la page « tech » correspond à la clôture du 13/11/2026 "
+                   "(cours de NVIDIA vérifié), les autres aux cours des jours suivants. Conversions : Flex à 1,31 \\$ par £, "
+                   "Vend à 9,5077 NOK par \\$. Information complémentaire, non utilisée dans la construction du portefeuille.")
+        st.download_button("Télécharger les capitalisations (CSV)", CAPS.to_csv(index=False).encode(), "capitalisations.csv",
+                           "text/csv")
+
     st.subheader("Table complète")
     st.dataframe(df, hide_index=True, width="stretch")
     st.download_button("Télécharger (CSV)", df.to_csv(index=False).encode(), "univers_enrichi.csv", "text/csv")
