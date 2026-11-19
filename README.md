@@ -10,7 +10,6 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
 * Composition par sous-industrie et par pays.
 * Profil comparé des deux secteurs : performance, risque, valorisation, rentabilité, attentes des analystes.
 * Estimation de la volatilité à partir de trois périodes de rendement.
-* Comparaison des performances par horizon (1 mois, YTD, année N-1).
 * Visualisation de la relation rendement / volatilité et de la persistance des performances.
 * Analyse des multiples de valorisation (P/E, PEG) et de l'upside des analystes.
 
@@ -56,20 +55,19 @@ Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypoth�
 
 **Données**
 * Une seule date d'observation : volatilités estimées sur trois rendements, corrélations supposées et non estimées.
-* Ni capitalisation ni liquidité : capacité, coûts de transaction et liquidité ne sont pas mesurés.
-* Devise des rendements non précisée : le risque de change n'est pas modélisé.
+* Rendements en devise locale (convention Bloomberg) : pour un investisseur en euros, la variation du dollar sur les titres américains
+  (deux tiers de l'univers) n'est pas prise en compte.
 * Upside, croissance attendue et PEG reposent sur le consensus des analystes, structurellement optimiste.
-* Sous-industries de 1 ou 2 titres : comparaisons entre pairs fragiles.
 
 **Modèle**
 * Pondération égale des piliers et coefficient d'information de 0,10 : hypothèses raisonnées, non estimées.
-* Aucun backtest : le pouvoir prédictif du score n'est pas démontré.
-* Loi normale pour la volatilité : les risques extrêmes sont sous-estimés.
-* Rule of 40 pensée pour les éditeurs de logiciels, moins pertinente pour les télécoms ou le matériel.
+* Aucun backtest, faute d'historique des données : le pouvoir prédictif du score n'est pas démontré.
 
 **Portefeuille et ESG**
 * La maximisation du Sharpe amplifie les erreurs d'estimation ; le plafond de 5 % et les quotas les limitent.
-* Expositions factorielles (bêta, taille, style, momentum) non contrôlées ; portefeuille statique, sans coûts.
+* Le portefeuille peut pencher vers des titres plus sensibles au marché ou d'un même style (croissance) : une partie
+  de sa performance viendrait alors de ces paris plutôt que de la sélection des titres.
+* Portefeuille construit une seule fois : ni rééquilibrage dans le temps, ni frais de transaction.
 * Scores ESG relatifs à l'industrie, issus de deux sources (pages S&P Global, Bloomberg) et de dates différentes ;
   un autre fournisseur pourrait classer différemment.
 
