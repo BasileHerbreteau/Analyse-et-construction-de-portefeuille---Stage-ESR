@@ -112,6 +112,22 @@ def load_esg(path: Path | str = ESG_PATH) -> pd.DataFrame | None:
     return esg if len(esg) else None
 
 
+CAPS_PATH = Path(__file__).parent / "data" / "market_caps.csv"
+
+
+def load_caps(path: Path | str = CAPS_PATH) -> pd.DataFrame | None:
+    """Capitalisations boursières en Md$ (source externe, information complémentaire).
+
+    lignes_univers = 2 quand une même société occupe deux lignes de l'univers (deux cotations ou deux
+    catégories d'actions) : sa capitalisation est alors partagée entre les deux lignes pour la pondération.
+    """
+    path = Path(path)
+    if not path.exists():
+        return None
+    caps = pd.read_csv(path).dropna(subset=["mcap_usd_bn"])
+    return caps if len(caps) else None
+
+
 def load_raw(path: Path | str = DATA_PATH) -> pd.DataFrame:
     df = pd.read_excel(path, sheet_name=0)
     df = df.dropna(how="all")

@@ -24,6 +24,8 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
 * Rendement attendu ex ante combinant la prime de risque du titre et son score.
 * Frontière efficiente et sensibilité aux hypothèses de corrélation.
 * Portefeuille final, avec ou sans filtre ESG, comparé à l'équipondéré : poids, contributions au risque, composition.
+* Comparaison avec un portefeuille pondéré par la capitalisation et taille des sociétés détenues (capitalisation
+  médiane, petites capitalisations dont le poids serait à revoir en pratique).
 
 ## Méthode en bref
 
@@ -40,14 +42,18 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
   la médiane de leur sous-industrie, pondération qui maximise le ratio de Sharpe ex ante.
 * **Filtre ESG** : seuls les titres mieux notés que la médiane de leur sous-industrie sont éligibles, avec repêchage
   des bons scores pour garder la diversification.
+* **Capitalisations** : relevées sur companiesmarketcap.com (clôture du 13/11/2026 pour 38 titres, cours du 10 au
+  18/11 pour la plupart des autres). Elles servent seulement au portefeuille de référence pondéré par la
+  capitalisation et à la comparaison des tailles, pas à la construction.
 
 ## Résultats
 
-| | Équipondéré (99) | Sans ESG | Avec filtre ESG |
-| --- | --- | --- | --- |
-| Rendement attendu | 11,6 % | 18,9 % | 16,8 % |
-| Volatilité estimée | 29,3 % | 24,1 % | 26,4 % |
-| Sharpe ex ante | 0,40 | 0,78 | 0,63 |
+| | Équipondéré (99) | Sans ESG | Avec filtre ESG | Pondéré par la capitalisation (99) |
+| --- | --- | --- | --- | --- |
+| Rendement attendu | 11,6 % | 18,9 % | 16,8 % | 12,9 % |
+| Volatilité estimée | 29,3 % | 24,1 % | 26,4 % | 30,6 % |
+| Sharpe ex ante | 0,40 | 0,78 | 0,63 | 0,42 |
+| Capitalisation médiane des lignes | 40 Md$ | 141 Md$ | 42 Md$ | 40 Md$ |
 
 Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes.
 
@@ -58,6 +64,7 @@ Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypoth�
 * Rendements en devise locale (convention Bloomberg) : pour un investisseur en euros, la variation du dollar sur les titres américains
   (deux tiers de l'univers) n'est pas prise en compte.
 * Upside, croissance attendue et PEG reposent sur le consensus des analystes, structurellement optimiste.
+* Capitalisations issues d'une source externe, relevées à des dates proches du 13/11 mais pas toutes à cette date.
 
 **Modèle**
 * Pondération égale des piliers et coefficient d'information de 0,10 : hypothèses raisonnées, non estimées.
@@ -80,5 +87,5 @@ streamlit run app.py
 
 Déploiement : [share.streamlit.io](https://share.streamlit.io) → *Create app* → ce dépôt, branche `main`, fichier `app.py`.
 
-Code : `app.py` (interface), `data_utils.py` (données), `analytics.py` (volatilité, frontière), `scoring.py`
+Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations), `analytics.py` (volatilité, frontière), `scoring.py`
 (z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection, optimisation).

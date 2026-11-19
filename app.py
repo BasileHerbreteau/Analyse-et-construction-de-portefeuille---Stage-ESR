@@ -198,6 +198,15 @@ if HAS_ESG:
     ports["Avec filtre ESG"] = build_portfolio(full, tuple(elig_esg), N_TOTAL, CAP, RHO, tuple(rescue))
 COV_FULL = an.covariance(full["vol"], an.block_correlation(full, *RHO))
 EW = pd.Series(1 / len(full), index=full.index)
+# Capitalisations (source externe) : information complémentaire, sans effet sur la construction ci-dessus
+CAPS = du.load_caps()
+HAS_CAP = CAPS is not None and full["ticker"].isin(CAPS["ticker"]).all()
+CAPW_NAME = "Pondéré par la capitalisation (99 titres)"
+if HAS_CAP:
+    _c = CAPS.set_index("ticker")
+    full["mcap"] = full["ticker"].map(_c["mcap_usd_bn"])
+    W_CAP = full["mcap"] / full["ticker"].map(_c["lignes_univers"])
+    W_CAP = W_CAP / W_CAP.sum()
 
 mask = df_full.sector.isin(sectors) & df_full.subindustry.isin(subs) & df_full.country.isin(countries)
 df = base.loc[mask].copy()
@@ -996,6 +1005,9 @@ with tabs[7]:
     rows = [pf.summary("Équipondéré univers (99 titres)", EW, full, COV_FULL, rf)]
     for nm, sel in ports.items():
         rows.append(pf.summary(f"Portefeuille {nm[0].lower() + nm[1:]}", sel["Poids"], full, COV_FULL, rf))
+    PF_COLS = [r_["Portefeuille"] for r_ in rows[1:]]
+    if HAS_CAP:
+        rows.append(pf.summary(CAPW_NAME, W_CAP, full, COV_FULL, rf))
     comp = pd.DataFrame(rows).set_index("Portefeuille").T
     cur = comp[f"Portefeuille {cur_label}"]
     ewc = comp.iloc[:, 0]
@@ -1055,10 +1067,13 @@ with tabs[7]:
             dec_ = 0 if r_ in ("Lignes", "Sous-industries") else 2
             txt.loc[r_, num.columns[0]] = f"{ew_[r_]:.{dec_}f}"
             css.loc[r_, num.columns[0]] = "background-color: #F2F4F7; color: #4A5A70"
-            scale = 0.5 * max(num.loc[r_].abs().max(), 1e-9)
+            scale = 0.5 * max(num.loc[r_, [num.columns[0]] + PF_COLS].abs().max(), 1e-9)
             for c_ in num.columns[1:]:
                 v_, d_ = num.loc[r_, c_], num.loc[r_, c_] - ew_[r_]
                 txt.loc[r_, c_] = f"{v_:.{dec_}f}   ({d_:+.{dec_}f})"
+                if c_ == CAPW_NAME:      # référence de marché : affichée, non colorée
+                    css.loc[r_, c_] = "background-color: #F2F4F7; color: #4A5A70"
+                    continue
                 s_ = SENS.get(r_, 0)
                 inten = min(1.0, abs(d_) / scale)
                 if s_ and inten >= 0.05:
@@ -1073,7 +1088,9 @@ with tabs[7]:
     st.dataframe(comp_table([r_ for r_ in comp.index if r_ not in KEY_ROWS]), width="stretch", height=560)
     st.caption("Entre parenthèses : écart avec l'équipondéré. Vert : écart favorable ; rouge : défavorable ; intensité "
                "proportionnelle à l'ampleur de l'écart. Lignes non colorées : indicateurs descriptifs. Performances N-1 "
-               "et YTD : poids actuels appliqués aux rendements passés (description, pas un backtest).")
+               "et YTD : poids actuels appliqués aux rendements passés (description, pas un backtest)."
+               + (" Pondéré par la capitalisation : référence de marché, non colorée (capitalisations détaillées en "
+                  "fin d'onglet)." if HAS_CAP else ""))
 
     c1, c2 = st.columns(2)
     with c1:
@@ -1084,11 +1101,14 @@ with tabs[7]:
         fig.add_trace(go.Scatter(x=Pw["vol"], y=Pw["mu"], mode="markers", name="Titres retenus", text=Pw["ticker"],
                                  marker=dict(color=C_BLUE, size=6 + 300 * Pw["Poids"]),
                                  hovertemplate="%{text}<br>vol %{x:.1f} %<br>rdt %{y:.1f} %<extra></extra>"))
-        for col_name, sym, colr in [(comp.columns[0], "diamond", C_GREY), (comp.columns[1], "star", C_RED)] + \
-                ([(comp.columns[2], "star", C_TEAL)] if comp.shape[1] > 2 else []):
+        marks_ = [(comp.columns[0], "diamond", C_GREY)] + list(zip(PF_COLS, ["star"] * 2, [C_RED, C_TEAL])) + \
+            ([(CAPW_NAME, "square-open", C_NAVY)] if HAS_CAP else [])
+        for col_name, sym, colr in marks_:
             fig.add_trace(go.Scatter(x=[comp.loc["Volatilité estimée (%)", col_name]],
                                      y=[comp.loc["Rendement attendu (%)", col_name]], mode="markers", name=col_name,
-                                     marker=dict(symbol=sym, size=18, color=colr, line=dict(color="white", width=1.5))))
+                                     marker=dict(symbol=sym, size=18, color=colr,
+                                                 line=dict(color=colr, width=3) if sym.endswith("-open")
+                                                 else dict(color="white", width=1.5))))
         fig.update_layout(template=TEMPLATE, height=500, xaxis_title=lab("vol"), yaxis_title=lab("mu"),
                           title="Positionnement rendement / risque", xaxis_range=[0, min(full["vol"].max() * 1.05, 120)],
                           legend=dict(orientation="h", y=-0.2))
@@ -1156,7 +1176,79 @@ with tabs[7]:
     vals.index = [lab(c) for c in vals.index]
     c2.dataframe(vals.style.format("{:.2f}"), width="stretch", height=500)
 
-    best = comp.loc["Sharpe ex ante"].idxmax()
+    _cap_pts = []
+    if HAS_CAP:
+        st.subheader("Capitalisation boursière")
+        st.caption("Information complémentaire, non utilisée dans la construction. Capitalisations en milliards de "
+                   "dollars relevées sur companiesmarketcap.com : clôture du 13/11/2026 pour 38 titres, cours du 10 au "
+                   "18/11/2026 pour la plupart des autres (Vend Marketplaces : 25/09/2026). STMicroelectronics (Paris, "
+                   "Milan) et Fox (actions A, B) occupent deux lignes : leur capitalisation est partagée entre les deux "
+                   "pour la pondération.")
+        seuil = st.select_slider("Seuil de petite capitalisation (Md$)", options=[5, 10, 15, 20, 25], value=10)
+        mc = full["mcap"]
+        pw_ = {comp.columns[0]: EW, **{c_: ports[n_]["Poids"] for c_, n_ in zip(PF_COLS, ports)}, CAPW_NAME: W_CAP}
+        cap_tab = []
+        for nm_, w_ in pw_.items():
+            w_ = w_.reindex(full.index).fillna(0.0)
+            held = w_ > 0
+            cap_tab.append({"Portefeuille": nm_, "Capitalisation médiane des lignes (Md$)": mc[held].median(),
+                            "Capitalisation moyenne pondérée (Md$)": float((w_ * mc).sum()),
+                            f"Lignes sous {seuil} Md$": int((held & (mc < seuil)).sum()),
+                            f"Poids sous {seuil} Md$ (%)": 100 * float(w_[mc < seuil].sum())})
+        cap_tab = pd.DataFrame(cap_tab).set_index("Portefeuille")
+        st.dataframe(cap_tab.style.format({c_: "{:.0f}" if "Lignes" in c_ else "{:.1f}" for c_ in cap_tab.columns}),
+                     width="stretch")
+
+        w_s = ports["Sans ESG"]["Poids"].reindex(full.index).fillna(0.0)
+        w_e = ports["Avec filtre ESG"]["Poids"].reindex(full.index).fillna(0.0) if "Avec filtre ESG" in ports \
+            else pd.Series(0.0, index=full.index)
+        held_any = (w_s > 0) | (w_e > 0)
+        small = full.loc[held_any].assign(ws=w_s * 100, we=w_e * 100, wc=W_CAP * 100).sort_values("mcap").head(10)
+        small_t = pd.DataFrame({"Ticker": small["ticker"], "Société": small["name"], "Pays": small["country"],
+                                "Sous-industrie": small["subindustry"], "Capitalisation (Md$)": small["mcap"],
+                                "Poids sans ESG (%)": small["ws"], "Poids avec ESG (%)": small["we"],
+                                "Poids capi (%)": small["wc"]})
+
+        def _hl(row):
+            return ["background-color: rgba(214, 69, 61, .16); font-weight: 600" if row["Capitalisation (Md$)"] < seuil
+                    else ""] * len(row)
+        st.markdown(f"**Les 10 plus petites capitalisations détenues** (surlignées : sous {seuil} Md$)")
+        st.dataframe(small_t.style.apply(_hl, axis=1).format({"Capitalisation (Md$)": "{:.1f}", "Poids sans ESG (%)": "{:.1f}",
+                                                             "Poids avec ESG (%)": "{:.1f}",
+                                                             "Poids capi (%)": "{:.3f}"}),
+                     hide_index=True, width="stretch")
+        st.caption("Poids capi : poids de la ligne dans le portefeuille pondéré par la capitalisation. Une ligne à 5 % "
+                   "dans une société de moins de 10 Md$ représente plus de 100 fois son poids de marché : en gestion "
+                   "réelle, ce poids serait revu à la baisse (liquidité, part du capital détenue, écart au benchmark).")
+
+        sm_ = full[full["mcap"] < seuil].sort_values("mcap")
+        sm_w = {c_.replace("Portefeuille ", ""): w_.reindex(full.index).fillna(0.0).loc[sm_.index]
+                for c_, w_ in [(PF_COLS[0], w_s)] + ([(PF_COLS[1], w_e)] if len(PF_COLS) > 1 else [])}
+        sm_txt = " ; ".join(f"{k_} : " + (", ".join(f"{full.at[i_, 'ticker']} ({full.at[i_, 'mcap']:.1f} Md$, "
+                                                     f"{v_ * 100:.1f} %)" for i_, v_ in w_[w_ > 0].items()) or "aucune")
+                            for k_, w_ in sm_w.items())
+        n_sm = sum(int((w_ > 0).sum()) for w_ in sm_w.values())
+        _cap_pts = [
+            f"<b>Taille des sociétés</b> : capitalisation médiane des lignes "
+            + " ; ".join(f"{c_.replace('Portefeuille ', '')} {cap_tab.loc[c_, 'Capitalisation médiane des lignes (Md$)']:.0f} Md$"
+                         for c_ in PF_COLS)
+            + f", contre {mc.median():.0f} Md$ pour l'univers : pas de biais systématique vers les petites valeurs. "
+              "Moyenne pondérée par les poids : "
+            + " ; ".join(f"{c_.replace('Portefeuille ', '')} {cap_tab.loc[c_, 'Capitalisation moyenne pondérée (Md$)']:.0f} Md$"
+                         for c_ in PF_COLS)
+            + f", contre {cap_tab.loc[CAPW_NAME, 'Capitalisation moyenne pondérée (Md$)']:.0f} Md$ pour le pondéré par la "
+              "capitalisation : nos portefeuilles sont beaucoup moins concentrés sur les méga-capitalisations.",
+            (f"<b>Petites capitalisations</b> (sous {seuil} Md$) : {sm_txt}. Leur poids de marché est inférieur à "
+             f"{np.ceil(W_CAP.loc[sm_.index].max() * 10000) / 100:.2f} % : en gestion réelle, ces lignes seraient "
+             "sans doute réduites (liquidité, part du capital détenue, écart au benchmark)." if n_sm else
+             f"<b>Petites capitalisations</b> : aucune ligne sous {seuil} Md$."),
+            f"<b>Pondéré par la capitalisation</b> : Sharpe ex ante {comp.loc['Sharpe ex ante', CAPW_NAME]:.2f} "
+            f"(équipondéré {ewc['Sharpe ex ante']:.2f}), volatilité {comp.loc['Volatilité estimée (%)', CAPW_NAME]:.1f} % ; "
+            f"les 4 premières lignes pèsent {W_CAP.nlargest(4).sum():.0%} (nombre effectif "
+            f"{comp.loc['Nb effectif (1/Σw²)', CAPW_NAME]:.1f}).",
+        ]
+
+    best = comp.loc["Sharpe ex ante", [comp.columns[0]] + PF_COLS].idxmax()
     recap([f"<b>Portefeuille {cur_label}</b> : {int(cur['Lignes'])} lignes, rendement attendu {cur['Rendement attendu (%)']:.1f} %, "
            f"volatilité {cur['Volatilité estimée (%)']:.1f} %, Sharpe ex ante {cur['Sharpe ex ante']:.2f} contre "
            f"{ewc['Sharpe ex ante']:.2f} pour l'équipondéré.",
@@ -1173,8 +1265,8 @@ with tabs[7]:
             f"{comp.loc['Sharpe ex ante'].iloc[2]:.2f} contre {comp.loc['Sharpe ex ante'].iloc[1]:.2f} : le gain "
             f"extra-financier coûte {comp.loc['Sharpe ex ante'].iloc[1] - comp.loc['Sharpe ex ante'].iloc[2]:.2f} de "
             f"Sharpe" + (", et les deux portefeuilles restent nettement au-dessus de l'équipondéré."
-                         if comp.loc["Sharpe ex ante"].iloc[1:].min() > comp.loc["Sharpe ex ante"].iloc[0] + 0.1 else ".")
-            if comp.shape[1] > 2 else f"Meilleur Sharpe ex ante : {best}.")],
+                         if comp.loc["Sharpe ex ante", PF_COLS].min() > comp.loc["Sharpe ex ante"].iloc[0] + 0.1 else ".")
+            if len(PF_COLS) > 1 else f"Meilleur Sharpe ex ante : {best}.")] + _cap_pts,
           [f"Quotas : {N_TOTAL} places réparties entre sous-industries au prorata de leur taille (plus forts restes) ; "
            "un titre n'est retenu que si son score dépasse la médiane de sa sous-industrie ; places non pourvues "
            "attribuées aux meilleurs scores restants.",
@@ -1198,6 +1290,7 @@ with tabs[8]:
 | Corrélations | Structure par blocs {RHO[0]:.2f} / {RHO[1]:.2f} / {RHO[2]:.2f}, sensibilité dans l'onglet 7 |
 | Portefeuille | 30 titres : quotas par sous-industrie, score > médiane, Sharpe ex ante maximal, 5 % maximum par titre |
 | Filtre ESG | Score ESG > médiane de la sous-industrie ; repêchage des bons scores (> médiane) dont l'ESG ≥ médiane de l'univers, priorité aux sous-industries absentes |
+| Capitalisations | Source externe (companiesmarketcap.com) : clôture du 13/11/2026 pour 38 titres, cours du 10 au 18/11 pour la plupart des autres ; utilisées seulement pour le portefeuille de référence pondéré par la capitalisation et la comparaison des tailles, pas dans la construction |
 """)
     st.subheader("Limites et angles morts")
     c1, c2 = st.columns(2)
@@ -1205,8 +1298,8 @@ with tabs[8]:
 **Données**
 - Une seule date d'observation, sans historique de prix : volatilités estimées sur 3 rendements seulement,
   corrélations supposées (structure par blocs) et non estimées.
-- Ni capitalisation ni liquidité dans le fichier : une méga-capitalisation et une petite valeur sont traitées de la
-  même façon ; capacité, coûts de transaction et liquidité ne sont pas mesurés.
+- Ni capitalisation ni liquidité dans le fichier : la capitalisation, ajoutée après coup depuis une source externe,
+  n'intervient pas dans la construction ; liquidité, capacité et coûts de transaction ne sont pas mesurés.
 - Rendements en devise locale (convention Bloomberg) : pour un investisseur en euros, la variation du dollar
   sur les titres américains (deux tiers de l'univers) n'est pas prise en compte.
 - Upside, croissance LT du BPA et PEG reposent sur le consensus des analystes : prévisions structurellement
