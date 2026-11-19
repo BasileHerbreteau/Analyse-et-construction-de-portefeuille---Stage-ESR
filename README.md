@@ -46,9 +46,9 @@ Services (fichier *universe of stock 261113*, données au 13/11/2026), construit
 
 | | Équipondéré (99) | Sans ESG | Avec filtre ESG |
 | --- | --- | --- | --- |
-| Rendement attendu | 11,6 % | 18,9 % | 15,5 % |
-| Volatilité estimée | 29,3 % | 24,1 % | 24,9 % |
-| Sharpe ex ante | 0,40 | 0,78 | 0,62 |
+| Rendement attendu | 11,6 % | 18,9 % | 16,8 % |
+| Volatilité estimée | 29,3 % | 24,1 % | 26,4 % |
+| Sharpe ex ante | 0,40 | 0,78 | 0,63 |
 
 Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes.
 
@@ -70,7 +70,8 @@ Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypoth�
 **Portefeuille et ESG**
 * La maximisation du Sharpe amplifie les erreurs d'estimation ; le plafond de 5 % et les quotas les limitent.
 * Expositions factorielles (bêta, taille, style, momentum) non contrôlées ; portefeuille statique, sans coûts.
-* Scores ESG de dates différentes et relatifs à l'industrie ; un autre fournisseur pourrait classer différemment.
+* Scores ESG relatifs à l'industrie, issus de deux sources (pages S&P Global, Bloomberg) et de dates différentes ;
+  un autre fournisseur pourrait classer différemment.
 
 ## Lancer l'application
 

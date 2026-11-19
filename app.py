@@ -215,9 +215,9 @@ st.caption("Données : fichier « universe of stock 261113 » (99 titres, 17 col
            + (" ; scores ESG S&P Global sourcés titre par titre." if HAS_ESG else "."))
 
 tabs = st.tabs([
-    "1 · Univers", "2 · Rendement & risque", "3 · Valorisation & attentes", "4 · Critère agrégé",
-    "5 · Comparaison avec la Rule of 40", "6 · ESG", "7 · Rendement attendu & frontière",
-    "8 · Portefeuille final", "Annexe",
+    "1 · Univers", "2 · Synthèse", "3 · Rendement & risque", "4 · Valorisation & attentes",
+    "5 · Relations entre facteurs", "6 · Rule of 40 & critère agrégé", "7 · ESG",
+    "8 · Rendement attendu & Sharpe", "9 · Frontière efficiente", "10 · Portefeuille final", "Annexe",
 ])
 # Au clic sur un onglet, la page revient au début de l'onglet (juste sous la barre figée).
 st.iframe("""<script>
@@ -250,69 +250,91 @@ if (!doc.__tabScrollTop) {
 with tabs[0]:
     k = st.columns(4)
     k[0].metric("Titres", len(df))
-    k[1].metric("Information Technology", int((df.sector == "Information Technology").sum()))
-    k[2].metric("Communication Services", int((df.sector == "Communication Services").sum()))
-    k[3].metric("Titres américains", f"{(df.country == 'UNITED STATES').mean():.0%}")
+    k[1].metric("Secteurs", df.sector.nunique())
+    k[2].metric("Sous-industries", df.subindustry.nunique())
+    k[3].metric("Pays", df.country.nunique())
 
-    c1, c2 = st.columns([3, 2])
+    c1, c2 = st.columns(2)
     with c1:
-        subc = df.groupby(["sector", "subindustry"]).size().reset_index(name="n").sort_values("n")
-        fig = px.bar(subc, x="n", y="subindustry", color="sector", orientation="h",
-                     color_discrete_map=SECTOR_COLORS, template=TEMPLATE, text="n",
-                     labels={"n": "Nombre de titres", "subindustry": ""}, title="Nombre de titres par sous-industrie")
-        fig.update_layout(height=560, legend=dict(orientation="h", y=-0.12))
+        sec = df.sector.value_counts().rename_axis("sector").reset_index(name="n")
+        fig = px.pie(sec, names="sector", values="n", color="sector", color_discrete_map=SECTOR_COLORS,
+                     hole=0.45, title="Répartition par secteur")
+        fig.update_traces(textinfo="label+percent+value", marker_line_color="white", marker_line_width=2)
+        fig.update_layout(showlegend=False)
         show(fig, c1)
     with c2:
+        fig = px.sunburst(df.assign(n=1), path=["sector", "subindustry"], values="n", color="sector",
+                          color_discrete_map=SECTOR_COLORS, title="Secteur → sous-industrie")
+        fig.update_traces(insidetextorientation="radial", marker_line_color="white")
+        show(fig, c2)
+
+    subc = df.groupby(["sector", "subindustry"]).size().reset_index(name="n").sort_values("n")
+    fig = px.bar(subc, x="n", y="subindustry", color="sector", orientation="h",
+                 color_discrete_map=SECTOR_COLORS, template=TEMPLATE, text="n",
+                 labels={"n": "Nombre de titres", "subindustry": ""}, title="Nombre de titres par sous-industrie")
+    fig.update_layout(height=560)
+    show(fig)
+
+    c1, c2 = st.columns(2)
+    with c1:
         cnt = df.country.value_counts()
         top = cnt[cnt >= 3]
         pays = pd.concat([top, pd.Series({"Autres pays": cnt[cnt < 3].sum()})]).rename_axis("Pays").reset_index(name="n")
         fig = px.pie(pays, names="Pays", values="n", hole=0.45, title="Répartition par pays",
                      color_discrete_sequence=[C_NAVY, C_BLUE, C_LIGHT, C_TEAL, C_PALE, C_GREY, "#2E5E8C", "#C5CED9"])
         fig.update_traces(textinfo="label+percent", marker_line_color="white", marker_line_width=2)
-        fig.update_layout(height=560, showlegend=False)
+        show(fig, c1)
+    with c2:
+        zone = np.where(df.country == "UNITED STATES", "États-Unis", "Hors États-Unis")
+        xt = pd.crosstab(df.sector, zone)
+        fig = px.bar(xt.reset_index().melt(id_vars="sector", var_name="Zone", value_name="n"),
+                     x="sector", y="n", color="Zone", barmode="group", text="n", template=TEMPLATE,
+                     color_discrete_sequence=[C_BLUE, C_LIGHT], labels={"n": "Nombre de titres"},
+                     title="Secteur × zone géographique")
         show(fig, c2)
-
-    st.subheader("Profil des deux secteurs")
-    synth_cols = ["ret_1m", "ret_ytd", "tr_prev_year", "vol", "sharpe_ante", "upside", "pe_next", "peg",
-                  "fcf_yield", "ltg_eps", "sales_growth", "profit_margin", "rule_of_40", "risk_prem"] + ESG_COLS
-    # sens favorable (+1 : plus haut = mieux, −1 : plus bas = mieux)
-    FAV = {"ret_1m": 1, "ret_ytd": 1, "tr_prev_year": 1, "vol": -1, "sharpe_ante": 1, "upside": 1, "pe_next": -1,
-           "peg": -1, "fcf_yield": 1, "ltg_eps": 1, "sales_growth": 1, "profit_margin": 1, "rule_of_40": 1,
-           "risk_prem": 1, "esg": 1}
-    med = df.groupby("sector")[synth_cols].median()
-    prof_s = med.T
-    prof_s["Univers"] = df[synth_cols].median()
-    prof_s["Min"] = df[synth_cols].min()
-    prof_s["Max"] = df[synth_cols].max()
-    secs_ = [c_ for c_ in prof_s.columns if c_ in SECTOR_COLORS]
-
-    inv_ = {lab(c_): c_ for c_ in prof_s.index}
-    prof_s.index = [lab(c_) for c_ in prof_s.index]
-
-    def _fav(row):
-        out = [""] * len(row)
-        sgn = FAV.get(inv_.get(row.name, row.name), 0)
-        if len(secs_) == 2:
-            a_, b_ = row[secs_[0]], row[secs_[1]]
-            win = secs_[0] if (a_ - b_) * sgn > 0 else secs_[1] if (b_ - a_) * sgn > 0 else None
-            if win:
-                out[list(row.index).index(win)] = f"background-color: rgba(0, 161, 154, .22); font-weight: 600"
-        return out
-    prof_disp = prof_s.style.apply(_fav, axis=1).format("{:.2f}")
-    st.dataframe(prof_disp, width="stretch", height=38 * (len(prof_s) + 1))
-    st.caption("Médianes par secteur. Surligné : secteur le plus favorable sur l'indicateur (volatilité, P/E et PEG : "
-               "le plus bas). Min / Max : univers.")
-
     _top_sub = df.subindustry.value_counts()
+    recap([f"{len(df)} titres : {(df.sector == 'Information Technology').mean():.0%} en technologie, "
+           f"{(df.country == 'UNITED STATES').mean():.0%} américains.",
+           f"Les 3 premières sous-industries ({', '.join(_top_sub.index[:3])}) représentent "
+           f"{_top_sub.iloc[:3].sum() / len(df):.0%} de l'univers ; {(_top_sub <= 2).sum()} sous-industries comptent "
+           "2 titres ou moins.",
+           f"Communication Services : {(df.sector == 'Communication Services').sum()} titres répartis en "
+           f"{df.loc[df.sector == 'Communication Services', 'subindustry'].nunique()} sous-industries, dont plusieurs à "
+           "un ou deux titres : les comparaisons entre pairs y reposent sur peu d'observations.",
+           "L'équipondéré de l'univers est donc avant tout une exposition technologie américaine : la diversification "
+           "du portefeuille se pilote au niveau des sous-industries (quotas proportionnels à leur taille)."])
+
+# =========================================================================== #
+# 2. Synthèse
+# =========================================================================== #
+with tabs[1]:
+    synth_cols = ["ret_1m", "ret_ytd", "tr_prev_year", "vol", "sharpe_ante", "sharpe_post", "upside",
+                  "pe_next", "peg", "fcf_yield", "ltg_eps", "sales_growth", "profit_margin", "rule_of_40",
+                  "risk_prem"] + ESG_COLS
+    s = df[synth_cols].agg(["mean", "median", "std", "min", "max"]).T
+    s.columns = ["Moyenne", "Médiane", "Écart-type", "Min", "Max"]
+    s.index = [lab(c) for c in s.index]
+    st.subheader("Statistiques de l'univers")
+    st.dataframe(s.style.format("{:.2f}"), width="stretch", height=560)
+
+    st.subheader("Par secteur (moyenne / médiane)")
+    g = df.groupby("sector")[synth_cols].agg(["mean", "median"]).T
+    g.index = [f"{lab(v)} – {'moyenne' if s_ == 'mean' else 'médiane'}" for v, s_ in g.index]
+    st.dataframe(g.style.format("{:.2f}"), width="stretch", height=560)
+
+    med = df.groupby("sector")[synth_cols].median()
+    zs = (med - df[synth_cols].median()) / df[synth_cols].std()
+    fig = px.imshow(zs.T.rename(index=du.LABELS), aspect="auto", color_continuous_scale="RdBu_r",
+                    zmin=-1, zmax=1, text_auto=".2f",
+                    title="Profil des secteurs : écart de la médiane du secteur à celle de l'univers (en écarts-types)")
+    fig.update_layout(height=600)
+    show(fig)
     _gap = df["ret_ytd"].mean() - df["ret_ytd"].median()
-    pts_ = [f"<b>Composition</b> : {len(df)} titres, {(df.sector == 'Information Technology').mean():.0%} en technologie, "
-            f"{(df.country == 'UNITED STATES').mean():.0%} américains. Les 3 premières sous-industries "
-            f"({', '.join(_top_sub.index[:3])}) représentent {_top_sub.iloc[:3].sum() / len(df):.0%} de l'univers ; "
-            f"{(_top_sub <= 2).sum()} sous-industries comptent 2 titres ou moins. L'équipondéré est donc avant tout une "
-            "exposition technologie américaine : la diversification se pilote au niveau des sous-industries."]
+    pts_ = []
     IT_, CS_ = "Information Technology", "Communication Services"
     if {IT_, CS_} <= set(df.sector):
-        it, cs = med.loc[IT_], med.loc[CS_]
+        m_ = med.T  # médianes par secteur
+        it, cs = m_[IT_], m_[CS_]
 
         def lead(v, hi_good=True):
             return "Communication Services" if (cs[v] > it[v]) == hi_good else "Information Technology"
@@ -337,19 +359,19 @@ with tabs[0]:
             f"{it.risk_prem:.1f} % contre {cs.risk_prem:.1f} % : le marché et les analystes attendent davantage de la "
             "technologie, en contrepartie d'un risque plus élevé.",
         ]
-    pts_ += [f"<b>Univers</b> : perf. YTD moyenne {df.ret_ytd.mean():.1f} % contre médiane {df.ret_ytd.median():.1f} % "
+    pts_ += [f"Univers : perf. YTD moyenne {df.ret_ytd.mean():.1f} % contre médiane {df.ret_ytd.median():.1f} % "
              f"({'quelques très fortes hausses tirent la moyenne' if _gap > 0 else 'quelques fortes baisses tirent la moyenne'}) ; "
              f"upside des analystes de {df.upside.min():.0f} % à {df.upside.max():.0f} %."]
     recap(pts_, ["Valeurs écrêtées aux quantiles 2 % / 98 % (winsorisation) avant calcul, sauf l'upside des analystes, "
                  "conservé tel quel."])
 
 # =========================================================================== #
-# 2. Rendement & risque
+# 3. Rendement & risque
 # =========================================================================== #
-with tabs[1]:
+with tabs[2]:
     t1, t2, t3 = an.period_lengths(DATA_DATE)
-    exp_ = st.expander("Méthode d'estimation de la volatilité")
-    c1, c2 = exp_.columns([3, 2])
+    st.subheader("Volatilité : méthode d'estimation")
+    c1, c2 = st.columns([3, 2])
     with c1:
         st.markdown(f"""
 Le fichier fournit trois rendements sur des périodes **disjointes** : année civile N-1 ({t1:.2f} an), du 1er janvier
@@ -383,18 +405,33 @@ Le fichier fournit trois rendements sur des périodes **disjointes** : année ci
                    f"volatilité faible, relevée. Dispersion entre titres : {base['vol_obs'].std():.0f} pt avant, "
                    f"{base['vol'].std():.0f} pt après.")
 
-    hz = df.groupby("sector")[["ret_1m", "ret_ytd", "tr_prev_year"]].median().reset_index() \
-        .melt(id_vars="sector", var_name="Horizon", value_name="Rendement médian (%)")
-    hz["Horizon"] = hz["Horizon"].map(lab)
-    fig = px.bar(hz, x="Horizon", y="Rendement médian (%)", color="sector", barmode="group", text_auto=".1f",
-                 color_discrete_map=SECTOR_COLORS, template=TEMPLATE, title="Rendement médian par horizon et par secteur")
-    fig.update_layout(height=380, legend=dict(orientation="h", y=-0.2))
-    show(fig)
+    grp = st.radio("Niveau d'analyse", ["sector", "subindustry", "country"], horizontal=True,
+                   format_func=GROUP_FR.get, key="rr_grp")
+    agg = df.groupby(grp).agg(n=("ticker", "size"), ret_1m=("ret_1m", "mean"), ret_ytd=("ret_ytd", "mean"),
+                              tr_prev_year=("tr_prev_year", "mean"), vol=("vol", "mean")).reset_index()
+    c1, c2 = st.columns(2)
+    with c1:
+        long = agg.melt(id_vars=grp, value_vars=["ret_1m", "ret_ytd", "tr_prev_year"],
+                        var_name="Horizon", value_name="Rendement moyen (%)")
+        long["Horizon"] = long["Horizon"].map(lab)
+        fig = px.bar(long, x=grp, y="Rendement moyen (%)", color="Horizon", barmode="group", template=TEMPLATE,
+                     color_discrete_sequence=[C_PALE, C_LIGHT, C_NAVY], title="Rendement moyen par horizon")
+        fig.update_layout(height=450)
+        show(fig, c1)
+    with c2:
+        fig = px.box(df, x=grp, y="vol", color="sector" if grp != "sector" else grp, points="all",
+                     hover_name="ticker", color_discrete_map=SECTOR_COLORS, template=TEMPLATE,
+                     labels={"vol": lab("vol")}, title="Distribution de la volatilité estimée")
+        fig.update_layout(height=450, showlegend=grp != "sector")
+        show(fig, c2)
+        st.caption("Boîte : 1er à 3e quartile, trait = médiane. Moustaches (« fences ») : Q1 − 1,5 × IQR et "
+                   "Q3 + 1,5 × IQR, avec IQR = Q3 − Q1 ; les points au-delà sont atypiques.")
 
     c1, c2 = st.columns(2)
     with c1:
-        ret_var = "tr_prev_year"
-        ret_opts = {"tr_prev_year": lab("tr_prev_year")}
+        ret_opts = {"tr_prev_year": lab("tr_prev_year"), "ret_ytd": lab("ret_ytd"),
+                    "mu": "Rendement attendu ex ante (%, en excès de r_f, onglet 8)", "upside": lab("upside")}
+        ret_var = st.selectbox("Rendement (axe vertical)", list(ret_opts), format_func=ret_opts.get)
         fig = px.scatter(df, x="vol", y=ret_var, color="sector", hover_name="ticker",
                          hover_data={"name": True, "subindustry": True}, color_discrete_map=SECTOR_COLORS,
                          template=TEMPLATE, labels={"vol": lab("vol"), ret_var: ret_opts[ret_var]},
@@ -421,6 +458,12 @@ Le fichier fournit trois rendements sur des périodes **disjointes** : année ci
                    f"{f_pp['slope']:.2f}, soit {10 * f_pp['slope']:+.1f} pt de YTD en moyenne pour +10 pt en N-1 "
                    f"(0 = aucune persistance, 1 = persistance parfaite) ; Spearman {f_pp['spearman']:.2f}.")
 
+    disp = df.groupby(grp)[["ret_1m", "ret_ytd", "tr_prev_year"]].std()
+    disp = disp[df.groupby(grp).size() >= 2].rename(columns=du.LABELS)
+    fig = px.imshow(disp, text_auto=".1f", aspect="auto", color_continuous_scale="Blues",
+                    title="Dispersion des rendements au sein de chaque groupe (écart-type entre titres, en points)")
+    fig.update_layout(height=max(280, 28 * len(disp) + 120))
+    show(fig)
     _sv = df.groupby("sector").agg(tr=("tr_prev_year", "median"), ytd=("ret_ytd", "median"), v=("vol", "median"))
     _corr_rv = df["vol"].corr(df["tr_prev_year"], method="spearman")
     _f_n1 = du.ols_fit(df["vol"], df["tr_prev_year"])
@@ -447,12 +490,32 @@ Le fichier fournit trois rendements sur des périodes **disjointes** : année ci
            f"{base['vol_obs'].std():.0f} à {base['vol'].std():.0f} pt et corrige les estimations extrêmes dues à un "
            "seul mois atypique."],
           ["Volatilité annualisée estimée sur 3 log-rendements disjoints, rapprochée à 50 % de la médiane de la "
-           "sous-industrie (encart « Méthode » en haut de l'onglet)."])
+           "sous-industrie (voir ci-dessus)."])
 
 # =========================================================================== #
-# 3. Valorisation & attentes
+# 4. Valorisation & attentes
 # =========================================================================== #
-with tabs[2]:
+with tabs[3]:
+    grp = st.radio("Comparer par", ["sector", "subindustry", "country"], horizontal=True,
+                   format_func=GROUP_FR.get, key="val_grp")
+    var = st.selectbox("Variable", ["peg", "upside", "pe_next", "fcf_yield", "earnings_yield", "ltg_eps"],
+                       format_func=lab, key="val_var")
+    gstat = df.groupby(grp)[var].agg(["median", "mean", "count"]).reset_index().sort_values("median")
+    c1, c2 = st.columns(2)
+    with c1:
+        fig = px.bar(gstat, x="median", y=grp, orientation="h", text="count", template=TEMPLATE,
+                     color_discrete_sequence=[C_BLUE], labels={"median": f"Médiane – {lab(var)}", grp: ""},
+                     title=f"{lab(var)} médian (étiquette = nombre de titres)")
+        fig.add_vline(x=df[var].median(), line_dash="dash", line_color="#666", annotation_text="médiane univers")
+        fig.update_layout(height=max(380, 24 * len(gstat) + 120))
+        show(fig, c1)
+    with c2:
+        fig = px.box(df, x="sector", y=var, color="sector", points="all", hover_name="ticker",
+                     color_discrete_map=SECTOR_COLORS, template=TEMPLATE, labels={var: lab(var)},
+                     title=f"Distribution de {lab(var)} par secteur")
+        fig.update_layout(showlegend=False, height=max(380, 24 * len(gstat) + 120))
+        show(fig, c2)
+
     c1, c2 = st.columns(2)
     with c1:
         fig = px.scatter(df, x="ltg_eps", y="pe_next", color="sector", hover_name="ticker",
@@ -478,6 +541,14 @@ with tabs[2]:
         ols_line(fig, df["peg"], df["upside"])
         show(fig, c2)
 
+    fig = px.scatter(df, x="earnings_yield", y="fcf_yield", color="sector", hover_name="ticker",
+                     color_discrete_map=SECTOR_COLORS, template=TEMPLATE,
+                     labels={"earnings_yield": lab("earnings_yield"), "fcf_yield": lab("fcf_yield")},
+                     title="Earnings yield vs FCF yield : conversion des bénéfices en cash")
+    lim = [min(df.earnings_yield.min(), df.fcf_yield.min()), max(df.earnings_yield.max(), df.fcf_yield.max())]
+    fig.add_trace(go.Scatter(x=lim, y=lim, mode="lines", name="FCF yield = earnings yield",
+                             line=dict(color="#666", dash="dash", width=1)))
+    show(fig)
     _pg = df.groupby("sector")[["peg", "pe_next", "ltg_eps", "fcf_yield", "earnings_yield"]].median()
     _sp_pu = df.peg.corr(df.upside, method="spearman")
     _sp_gu = df.ltg_eps.corr(df.upside, method="spearman")
@@ -495,23 +566,30 @@ with tabs[2]:
            f"<b>Cohérence</b> : corrélation de rang PEG / upside {_sp_pu:.2f}, croissance LT / upside {_sp_gu:.2f}"
            + (" : les analystes voient davantage de potentiel sur les titres de forte croissance plutôt que sur les "
               "titres bon marché." if _sp_gu > abs(_sp_pu) else " : l'upside est davantage lié au prix payé qu'à la croissance."),
-          ],
+           f"<b>Qualité des bénéfices</b> : {_conv:.0%} des titres ont un FCF yield supérieur à leur earnings yield "
+           "(bénéfices convertis en cash) ; les titres très en dessous de la diagonale ont des bénéfices peu convertis "
+           "en trésorerie."],
           ["Earnings yield N+1 = 100 ÷ P/E N+1, comparable au FCF yield."])
 
 # =========================================================================== #
-# 4. Critère agrégé : corrélations, piliers, score
+# 5. Relations entre facteurs
 # =========================================================================== #
-with tabs[3]:
-    st.subheader("Corrélations entre les variables du fichier")
-    method = "spearman"
-    corr_cols = du.NUMERIC + ["vol"] + ESG_COLS
-    cm = df[corr_cols].corr(method=method).rename(index=du.LABELS, columns=du.LABELS)
-    fig = px.imshow(cm, text_auto=".2f", aspect="auto", zmin=-1, zmax=1, color_continuous_scale="RdBu_r",
-                    title="Matrice de corrélation de rang (Spearman)")
-    fig.update_layout(height=640)
-    show(fig)
-    st.caption("Spearman : corrélation entre les classements des titres (rangs), de −1 à 1, insensible aux valeurs "
-               "extrêmes.")
+with tabs[4]:
+    c1, c2 = st.columns([1, 3])
+    with c1:
+        method = st.radio("Corrélation", ["spearman", "pearson"],
+                          format_func={"spearman": "Spearman (rangs)", "pearson": "Pearson (linéaire)"}.get,
+                          help="Spearman : corrélation entre les classements des titres (rangs), insensible aux valeurs "
+                               "extrêmes. Pearson : corrélation linéaire entre les valeurs.")
+        default_corr = du.NUMERIC + ["vol"] + ESG_COLS
+        corr_cols = st.multiselect("Variables", ALL_NUM, default=default_corr, format_func=lab, key="corr_cols")
+    with c2:
+        if len(corr_cols) >= 2:
+            cm = df[corr_cols].corr(method=method).rename(index=du.LABELS, columns=du.LABELS)
+            fig = px.imshow(cm, text_auto=".2f", aspect="auto", zmin=-1, zmax=1,
+                            color_continuous_scale="RdBu_r", title=f"Matrice de corrélation ({method})")
+            fig.update_layout(height=680)
+            show(fig, c2)
     pairs = pd.DataFrame()
     if len(corr_cols) >= 2:
         cm_raw = df[corr_cols].corr(method=method)
@@ -552,7 +630,72 @@ with tabs[3]:
   volatilité, et leur forte corrélation entre elles (RSI × perf. 1 mois) en ferait un signal redondant de court terme.
 """)
 
-    st.subheader("Construction du score")
+    st.subheader("Analyse d'une relation")
+    c1, c2, c3 = st.columns(3)
+    xv = c1.selectbox("X", ALL_NUM, index=ALL_NUM.index("ltg_eps"), format_func=lab)
+    yv = c2.selectbox("Y", ALL_NUM, index=ALL_NUM.index("upside"), format_func=lab)
+    by_sector = c3.checkbox("Une régression par secteur", value=False)
+    dd_all = df.dropna(subset=[xv, yv])
+    fig = px.scatter(dd_all, x=xv, y=yv, color="sector", hover_name="ticker",
+                     color_discrete_map=SECTOR_COLORS, template=TEMPLATE, labels={xv: lab(xv), yv: lab(yv)})
+    groups = [(s_, dd_all[dd_all.sector == s_]) for s_ in dd_all.sector.unique()] if by_sector else [("Univers", dd_all)]
+    stats = []
+    for name, dd in groups:
+        if len(dd) < 3:
+            continue
+        f_ = ols_line(fig, dd[xv], dd[yv], f"MCO {name}", SECTOR_COLORS.get(name, "#333"))
+        stats.append({"Groupe": name, "n": f_["n"], "Pente": f_["slope"], "R²": f_["r2"],
+                      "Pearson": f_["pearson"], "Spearman": f_["spearman"]})
+    fig.update_layout(height=500)
+    show(fig)
+    st.dataframe(pd.DataFrame(stats).style.format({"Pente": "{:.3f}", "R²": "{:.2f}", "Pearson": "{:.2f}",
+                                                  "Spearman": "{:.2f}"}), hide_index=True, width="stretch")
+    if len(pairs):
+        _p0 = pairs.iloc[0]
+        _neg = pc.where(~np.eye(4, dtype=bool)).stack().idxmin()
+        _cf = df[["ltg_eps", "sales_growth", "profit_margin", "fcf_yield", "peg", "earnings_yield", "upside",
+                  "risk_prem"]].corr(method="spearman")
+        recap([f"<b>Relations les plus fortes</b> : {', '.join(f'{r.Paire} ({r.corr:+.2f})' for r in pairs.head(3).itertuples())}. "
+               "Les variables très corrélées portent la même information : les additionner sans précaution reviendrait "
+               "à la compter deux fois.",
+               f"<b>Au sein des piliers</b> : croissance LT / croissance du CA {_cf.loc['ltg_eps', 'sales_growth']:+.2f}, "
+               f"marge / FCF yield {_cf.loc['profit_margin', 'fcf_yield']:+.2f}, upside / prime de risque "
+               f"{_cf.loc['upside', 'risk_prem']:+.2f} : chaque pilier regroupe des facteurs de même nature, moyennés "
+               "avant d'entrer dans le score.",
+               f"<b>Entre piliers</b> : corrélation absolue moyenne {off.mean():.2f} ; relation la plus négative entre "
+               f"{_neg[0]} et {_neg[1]} ({pc.loc[_neg]:+.2f})"
+               + (" : les sociétés en forte croissance sacrifient une partie de leur marge. "
+                  if set(_neg) == {"Croissance", "Rentabilité"} else
+                  " : la qualité et la croissance se paient. " if "Valorisation" in _neg else ". ")
+               + f"Avec {n_eff:.1f} piliers effectivement indépendants sur 4, chaque pilier apporte une information propre : "
+               "la pondération égale est justifiée."],
+              ["Nombre effectif de piliers = (Σλ)² / Σλ², λ valeurs propres de la matrice de corrélation des piliers."])
+
+# =========================================================================== #
+# 6. Rule of 40 & critère agrégé
+# =========================================================================== #
+with tabs[5]:
+    r40 = df_raw_f.loc[df.index, "rule_of_40"]
+    passe = r40 >= 40
+    passe_rate = float(passe.mean())
+
+    st.subheader("Rule of 40")
+    k = st.columns(4)
+    k[0].metric("Titres passant la règle", f"{int(passe.sum())} / {len(df)}")
+    k[1].metric("Rule of 40 médiane", f"{r40.median():.1f}")
+    for i_, (s_, v_) in enumerate(list(passe.groupby(df.sector).mean().items())[:2]):
+        k[2 + i_].metric(f"Taux de passage – {s_}", f"{v_:.0%}")
+    fig = px.scatter(df.assign(statut=np.where(passe, "Passe", "Ne passe pas")), x="sales_growth", y="profit_margin",
+                     color="sector", symbol="statut", hover_name="ticker", color_discrete_map=SECTOR_COLORS,
+                     template=TEMPLATE, labels={"sales_growth": lab("sales_growth"), "profit_margin": lab("profit_margin")},
+                     title="Croissance du CA vs marge nette : la Rule of 40 est la droite x + y = 40")
+    xs = np.linspace(df.sales_growth.min(), df.sales_growth.max(), 50)
+    fig.add_trace(go.Scatter(x=xs, y=40 - xs, mode="lines", name="x + y = 40", line=dict(color="#666", dash="dash")))
+    fig.update_yaxes(range=[df.profit_margin.min() - 5, df.profit_margin.max() + 5])
+    fig.update_layout(height=460)
+    show(fig)
+
+    st.subheader("Critère agrégé")
     c1, c2 = st.columns([2, 3])
     with c1:
         st.latex(r"z_{i,f} = s_f\,\frac{x_{i,f} - \bar x_{g(i),f}}{\sigma_{g(i),f}}")
@@ -577,51 +720,6 @@ with tabs[3]:
                           title="Top 15 du score final et contribution de chaque pilier",
                           legend=dict(orientation="h", y=-0.12))
         show(fig, c2)
-
-    if len(pairs):
-        _p0 = pairs.iloc[0]
-        _neg = pc.where(~np.eye(4, dtype=bool)).stack().idxmin()
-        _cf = df[["ltg_eps", "sales_growth", "profit_margin", "fcf_yield", "peg", "earnings_yield", "upside",
-                  "risk_prem"]].corr(method="spearman")
-        recap([f"<b>Relations les plus fortes</b> : {', '.join(f'{r.Paire} ({r.corr:+.2f})' for r in pairs.head(3).itertuples())}. "
-               "Les variables très corrélées portent la même information : les additionner sans précaution reviendrait "
-               "à la compter deux fois.",
-               f"<b>Au sein des piliers</b> : croissance LT / croissance du CA {_cf.loc['ltg_eps', 'sales_growth']:+.2f}, "
-               f"marge / FCF yield {_cf.loc['profit_margin', 'fcf_yield']:+.2f}, upside / prime de risque "
-               f"{_cf.loc['upside', 'risk_prem']:+.2f} : chaque pilier regroupe des facteurs de même nature, moyennés "
-               "avant d'entrer dans le score.",
-               f"<b>Entre piliers</b> : corrélation absolue moyenne {off.mean():.2f} ; relation la plus négative entre "
-               f"{_neg[0]} et {_neg[1]} ({pc.loc[_neg]:+.2f})"
-               + (" : les sociétés en forte croissance sacrifient une partie de leur marge. "
-                  if set(_neg) == {"Croissance", "Rentabilité"} else
-                  " : la qualité et la croissance se paient. " if "Valorisation" in _neg else ". ")
-               + f"Avec {n_eff:.1f} piliers effectivement indépendants sur 4, chaque pilier apporte une information propre : "
-               "la pondération égale est justifiée."],
-              ["Nombre effectif de piliers = (Σλ)² / Σλ², λ valeurs propres de la matrice de corrélation des piliers."])
-
-# =========================================================================== #
-# 5. Comparaison avec la Rule of 40
-# =========================================================================== #
-with tabs[4]:
-    r40 = df_raw_f.loc[df.index, "rule_of_40"]
-    passe = r40 >= 40
-    passe_rate = float(passe.mean())
-
-    st.subheader("Rule of 40")
-    k = st.columns(4)
-    k[0].metric("Titres passant la règle", f"{int(passe.sum())} / {len(df)}")
-    k[1].metric("Rule of 40 médiane", f"{r40.median():.1f}")
-    for i_, (s_, v_) in enumerate(list(passe.groupby(df.sector).mean().items())[:2]):
-        k[2 + i_].metric(f"Taux de passage – {s_}", f"{v_:.0%}")
-    fig = px.scatter(df.assign(statut=np.where(passe, "Passe", "Ne passe pas")), x="sales_growth", y="profit_margin",
-                     color="sector", symbol="statut", hover_name="ticker", color_discrete_map=SECTOR_COLORS,
-                     template=TEMPLATE, labels={"sales_growth": lab("sales_growth"), "profit_margin": lab("profit_margin")},
-                     title="Croissance du CA vs marge nette : la Rule of 40 est la droite x + y = 40")
-    xs = np.linspace(df.sales_growth.min(), df.sales_growth.max(), 50)
-    fig.add_trace(go.Scatter(x=xs, y=40 - xs, mode="lines", name="x + y = 40", line=dict(color="#666", dash="dash")))
-    fig.update_yaxes(range=[df.profit_margin.min() - 5, df.profit_margin.max() + 5])
-    fig.update_layout(height=460)
-    show(fig)
 
     st.subheader("Comparaison du critère agrégé avec la Rule of 40")
     cmp_ = sc.rule40_comparison(df["Score final"], r40, passe_rate)
@@ -698,17 +796,19 @@ with tabs[4]:
            "Kendall = (paires concordantes − paires discordantes) ÷ nombre de paires."])
 
 # =========================================================================== #
-# 6. ESG
+# 7. ESG
 # =========================================================================== #
-with tabs[5]:
+with tabs[6]:
     if not HAS_ESG:
         st.warning("Fichier `data/esg_scores.csv` absent.")
     else:
-        n_old = int(df_full["esg_provider"].fillna("").str.contains("2024").sum())
+        _prov = df_full["esg_provider"].fillna("")
+        n_bbg = int((_prov.str.contains("Bloomberg") & df_full["esg"].notna()).sum())
+        n_web = int((_prov.str.contains("Sustainable1") & df_full["esg"].notna()).sum())
         n_missing = int(df_full["esg"].isna().sum())
-        st.caption(f"S&P Global ESG Score (0–100, plus haut = meilleur, relatif à l'industrie). "
-                   f"{int(df_full['esg'].notna().sum()) - n_old} titres : page S&P Global de la société (2025–2026) ; "
-                   f"{n_old} titres : score CSA S&P Global du 22/11/2024 ; {n_missing} titres sans score public.")
+        st.caption(f"S&P Global ESG Score (0–100, plus haut = meilleur, relatif à l'industrie). {n_web} titres : page "
+                   f"S&P Global de la société (2025–2026) ; {n_bbg} titres : Bloomberg (relevé du 19/11/2026) ; "
+                   f"{n_missing} titres non notés par S&P Global, exclus du filtre ESG.")
         de = df.dropna(subset=["esg"])
         k = st.columns(4)
         k[0].metric("Titres notés", f"{len(de)} / {len(df)}")
@@ -733,8 +833,20 @@ with tabs[5]:
                          title="Position vs médiane ESG de la sous-industrie")
             fig.update_layout(height=520, legend=dict(orientation="h", y=-0.15))
             show(fig, c2)
+        yv = st.selectbox("Comparer l'ESG à", ["tr_prev_year", "ret_ytd", "vol", "sharpe_ante", "upside", "Score final"],
+                          format_func=lab, key="esg_y")
+        fig = px.scatter(de, x="esg", y=yv, color="sector", hover_name="ticker",
+                         color_discrete_map=SECTOR_COLORS, template=TEMPLATE, labels={"esg": lab("esg"), yv: lab(yv)})
+        f_ = ols_line(fig, de["esg"], de[yv])
+        fig.update_layout(title=f"ESG vs {lab(yv)}  ·  pente {f_['slope']:.2f}  ·  Spearman {f_['spearman']:.2f}  ·  "
+                                f"R² {f_['r2']:.2f}", height=480)
+        show(fig)
+        st.caption("Droite des moindres carrés. Pente : variation moyenne de la variable pour +1 point d'ESG. "
+                   "Spearman : corrélation des rangs (−1 à 1). R² : part de la variance expliquée par l'ESG.")
         de = de.assign(quintile=pd.qcut(de.esg.rank(method="first"), 5, labels=["Q1", "Q2", "Q3", "Q4", "Q5"]))
         qt = de.groupby("quintile", observed=True)[["esg", "tr_prev_year", "ret_ytd", "vol", "sharpe_ante", "upside"]].mean()
+        st.markdown("**Rendement et risque moyens par quintile ESG** (Q1 = scores les plus bas)")
+        st.dataframe(qt.rename(columns=du.LABELS).style.format("{:.2f}"), width="stretch")
         with st.expander("Sources des scores ESG"):
             st.dataframe(df_full.loc[df_full.esg.notna(), ["ticker", "name", "esg", "esg_provider", "esg_date", "source_url"]],
                          hide_index=True, width="stretch",
@@ -765,10 +877,9 @@ with tabs[5]:
                "ce qui neutralise les écarts structurels de notation entre industries."])
 
 # =========================================================================== #
-# 7. Rendement attendu & frontière efficiente
+# 8. Rendement attendu & Sharpe
 # =========================================================================== #
-with tabs[6]:
-    st.subheader("Rendement attendu ex ante")
+with tabs[7]:
     st.latex(r"\mu_i = \underbrace{(1-\lambda)\,\text{Prime}_i + \lambda\,(\text{Upside}_i - r_f)}_{\text{niveau}} + "
              r"\underbrace{IC\cdot\sigma_i\cdot \tilde Z^{\alpha}_i}_{\text{alpha z-scores}}, \qquad "
              r"\text{Sharpe}^{ex\,ante}_i = \frac{\mu_i}{\sigma_i}")
@@ -823,13 +934,28 @@ with tabs[6]:
                "de 5 %. R² : part des écarts entre titres expliquée par les trois piliers ensemble. Données à une même "
                "date : test de cohérence, pas un backtest.")
 
+    c1, c2 = st.columns(2)
+    with c1:
+        fig = px.box(df, x="sector", y="sharpe_ante", color="sector", points="all", hover_name="ticker",
+                     color_discrete_map=SECTOR_COLORS, template=TEMPLATE,
+                     labels={"sharpe_ante": lab("sharpe_ante")}, title="Sharpe ex ante par secteur")
+        fig.update_layout(showlegend=False, height=520)
+        show(fig, c1)
+    with c2:
+        top = pd.concat([df.nlargest(12, "sharpe_ante"), df.nsmallest(12, "sharpe_ante")])
+        fig = px.bar(top.sort_values("sharpe_ante"), x="sharpe_ante", y="ticker", color="sector", orientation="h",
+                     color_discrete_map=SECTOR_COLORS, template=TEMPLATE,
+                     labels={"sharpe_ante": lab("sharpe_ante"), "ticker": ""},
+                     title="12 meilleurs et 12 moins bons Sharpe ex ante")
+        fig.update_layout(height=520)
+        show(fig, c2)
     _sh = df.groupby("sector")["sharpe_ante"].median()
     _r = regs.set_index("Variable expliquée")
     def _sig(nm):
         s_ = [p_ for p_ in ["Croissance", "Rentabilité", "Valorisation"] if abs(_r.loc[nm, f"{p_} (t)"]) > 2]
         return ", ".join(f"{p_} ({'+' if _r.loc[nm, f'{p_} (coef.)'] > 0 else '−'})" for p_ in s_) or "aucun pilier"
     _mu_s = df.groupby("sector")["mu"].median()
-    _recap7 = ([f"<b>Niveau</b> : rendement attendu médian {df.mu.median():.1f} % en excès du taux sans risque ("
+    recap([f"<b>Niveau</b> : rendement attendu médian {df.mu.median():.1f} % en excès du taux sans risque ("
            + " ; ".join(f"{i} {v:.1f} %" for i, v in _mu_s.items()) + ").",
            f"<b>Alpha</b> : de {df['Alpha z-scores'].min():+.1f} à {df['Alpha z-scores'].max():+.1f} pt selon les titres ; "
            f"corrélation de rang μ / score final {df.mu.corr(df['Score final'], method='spearman'):.2f} : le rendement "
@@ -844,7 +970,10 @@ with tabs[6]:
           ["Alpha = IC × σ × score standardisé (règle de Grinold).",
            f"Sharpe ex post = (total return N-1 − {rf:.2f} %) ÷ volatilité estimée."])
 
-    st.subheader("Frontière efficiente")
+# =========================================================================== #
+# 9. Frontière efficiente
+# =========================================================================== #
+with tabs[8]:
     st.markdown(f"Portefeuilles long-only de variance minimale pour chaque niveau de rendement attendu, "
                 f"**{CAP:.0%} maximum par titre**, sur la sélection filtrée.")
     R = an.block_correlation(df, *RHO)
@@ -920,18 +1049,18 @@ entre secteurs. Le tableau ci-dessous mesure la sensibilité des conclusions à 
             v_ = _rw.loc["Variance minimale"]
             _fr.append(f"<b>Variance minimale</b> : {v_['Volatilité (%)']:.1f} % de volatilité, obtenue en concentrant les "
                        "poids sur les titres les moins volatils et en diversifiant entre secteurs.")
-    recap(_recap7[0] + _fr + [f"Avec l'hypothèse centrale, le portefeuille sans ESG améliore le Sharpe ex ante de "
+    recap(_fr + [f"Avec l'hypothèse centrale, le portefeuille sans ESG améliore le Sharpe ex ante de "
            f"{_sens.loc[1, 'Écart de Sharpe']:+.2f} par rapport à l'équipondéré ; l'écart reste positif sous les "
            f"hypothèses basse ({_sens.loc[0, 'Écart de Sharpe']:+.2f}) et haute ({_sens.loc[2, 'Écart de Sharpe']:+.2f})."
            if (_sens["Écart de Sharpe"] > 0).all() else
            "Le classement des portefeuilles dépend des hypothèses de corrélation : voir le tableau de sensibilité."],
-          _recap7[1] + ["Covariance Σ = D·R·D : D = volatilités estimées, R = corrélations par blocs.",
+          ["Covariance Σ = D·R·D : D = volatilités estimées, R = corrélations par blocs.",
            "Frontière : minimisation de wᵀΣw pour chaque rendement cible, 0 ≤ w ≤ 5 %, Σw = 1 (SLSQP)."])
 
 # =========================================================================== #
-# 8. Portefeuille final
+# 10. Portefeuille final
 # =========================================================================== #
-with tabs[7]:
+with tabs[9]:
     st.latex(r"\max_{w}\ \frac{w^\top \mu}{\sqrt{w^\top \Sigma w}} \quad \text{s.c.} \quad \sum_i w_i = 1,"
              r"\quad 0 \le w_i \le 5\,\%")
     esg_on = st.toggle("Filtre ESG : score ESG supérieur à la médiane de la sous-industrie", value=False,
@@ -1021,7 +1150,24 @@ with tabs[7]:
                "proportionnelle à l'ampleur de l'écart. Lignes non colorées : indicateurs descriptifs. Performances N-1 "
                "et YTD : poids actuels appliqués aux rendements passés (description, pas un backtest).")
 
-    c2 = st.container()
+    c1, c2 = st.columns(2)
+    with c1:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=full["vol"], y=full["mu"], mode="markers", name="Univers", text=full["ticker"],
+                                 marker=dict(color=C_PALE, size=7),
+                                 hovertemplate="%{text}<br>vol %{x:.1f} %<br>rdt %{y:.1f} %<extra></extra>"))
+        fig.add_trace(go.Scatter(x=Pw["vol"], y=Pw["mu"], mode="markers", name="Titres retenus", text=Pw["ticker"],
+                                 marker=dict(color=C_BLUE, size=6 + 300 * Pw["Poids"]),
+                                 hovertemplate="%{text}<br>vol %{x:.1f} %<br>rdt %{y:.1f} %<extra></extra>"))
+        for col_name, sym, colr in [(comp.columns[0], "diamond", C_GREY), (comp.columns[1], "star", C_RED)] + \
+                ([(comp.columns[2], "star", C_TEAL)] if comp.shape[1] > 2 else []):
+            fig.add_trace(go.Scatter(x=[comp.loc["Volatilité estimée (%)", col_name]],
+                                     y=[comp.loc["Rendement attendu (%)", col_name]], mode="markers", name=col_name,
+                                     marker=dict(symbol=sym, size=18, color=colr, line=dict(color="white", width=1.5))))
+        fig.update_layout(template=TEMPLATE, height=500, xaxis_title=lab("vol"), yaxis_title=lab("mu"),
+                          title="Positionnement rendement / risque", xaxis_range=[0, min(full["vol"].max() * 1.05, 120)],
+                          legend=dict(orientation="h", y=-0.2))
+        show(fig, c1)
     with c2:
         rc = Pw.sort_values("Contribution au risque", ascending=False).head(15)
         fig = go.Figure()
@@ -1058,12 +1204,12 @@ with tabs[7]:
         c2.markdown(f"**Uniquement sans ESG ({len(a_ - b_)})**  \n" + ", ".join(sorted(a_ - b_)))
         c3.markdown(f"**Uniquement avec ESG ({len(b_ - a_)})**  \n" + ", ".join(sorted(b_ - a_)))
 
-    fiche = st.expander("Fiche titre : profil d'une ligne du portefeuille")
+    st.subheader("Fiche titre : profil d'une ligne du portefeuille")
     hold = Pw.sort_values("Poids", ascending=False)
-    choice = fiche.selectbox("Titre", hold.ticker + " – " + hold.name + "  (" + (hold["Poids"] * 100).round(1).astype(str) + " %)")
+    choice = st.selectbox("Titre", hold.ticker + " – " + hold.name + "  (" + (hold["Poids"] * 100).round(1).astype(str) + " %)")
     tk = choice.split(" – ")[0]
     row = full[full.ticker == tk].iloc[0]
-    fiche.markdown(f"**{row['name']}** · {row['sector']} · {row['subindustry']} · {row['country']}")
+    st.markdown(f"**{row['name']}** · {row['sector']} · {row['subindustry']} · {row['country']}")
     prof_cols = ["upside", "ltg_eps", "sales_growth", "profit_margin", "fcf_yield", "earnings_yield",
                  "sharpe_ante", "tr_prev_year", "Score final"] + ESG_COLS
     pct_all = full[prof_cols].rank(pct=True).loc[row.name] * 100
@@ -1077,7 +1223,7 @@ with tabs[7]:
                                   line_color=C_TEAL, opacity=0.6))
     fig.update_layout(polar=dict(radialaxis=dict(range=[0, 100])), height=500,
                       title="Profil en percentiles (100 = valeur la plus élevée)")
-    c1, c2 = fiche.columns([3, 2])
+    c1, c2 = st.columns([3, 2])
     show(fig, c1)
     vcols = du.NUMERIC + ["rule_of_40", "vol", "mu", "sharpe_ante"] + PILLARS + ["Score final"] + ESG_COLS
     vals = pd.DataFrame({"Valeur": row[vcols].astype(float), "Médiane sous-industrie": peers[vcols].median(),
@@ -1111,9 +1257,9 @@ with tabs[7]:
            "Nombre effectif de titres = 1 / Σw² ; contribution au risque = w_i (Σw)_i / wᵀΣw."])
 
 # =========================================================================== #
-# Annexe : méthodes et limites
+# Annexe : méthodes
 # =========================================================================== #
-with tabs[8]:
+with tabs[10]:
     st.subheader("Synthèse des méthodes")
     st.markdown(f"""
 | Étape | Méthode |
@@ -1124,7 +1270,7 @@ with tabs[8]:
 | Score final | Moyenne de 4 piliers à poids égal (8 facteurs) |
 | Rendement attendu | Prime de risque implicite + IC × σ × score standardisé (IC = {ic:.2f}) |
 | Taux sans risque | {rf:.2f} % : T-bill américain 3 mois au 13/11/2026 ([FRED DGS3MO]({an.RF_SOURCE})) |
-| Corrélations | Structure par blocs {RHO[0]:.2f} / {RHO[1]:.2f} / {RHO[2]:.2f}, sensibilité dans l'onglet 7 |
+| Corrélations | Structure par blocs {RHO[0]:.2f} / {RHO[1]:.2f} / {RHO[2]:.2f}, sensibilité dans l'onglet 9 |
 | Portefeuille | 30 titres : quotas par sous-industrie, score > médiane, Sharpe ex ante maximal, 5 % maximum par titre |
 | Filtre ESG | Score ESG > médiane de la sous-industrie ; repêchage des bons scores (> médiane) dont l'ESG ≥ médiane de l'univers, priorité aux sous-industries absentes |
 """)
@@ -1143,7 +1289,8 @@ with tabs[8]:
 - Sous-industries GICS de 1 ou 2 titres : comparaisons entre pairs fragiles, malgré le rapprochement vers le secteur.
 
 **ESG**
-- Scores relatifs à l'industrie, de dates différentes ; titres non notés exclus du filtre ESG.
+- Scores relatifs à l'industrie, issus de deux sources (pages S&P Global, Bloomberg) et de dates différentes ;
+  titres non notés exclus du filtre ESG.
 - Un autre fournisseur (MSCI, Sustainalytics) peut classer différemment : les notations ESG divergent fortement.
 - Médiane ESG d'une sous-industrie de 2 ou 3 titres peu robuste.
 """)
