@@ -20,10 +20,11 @@ import portfolio as pf
 import scoring as sc
 import allocation as al
 import tab_allocation as ta
+import tab_bloomberg as tb
 
 # Après une mise à jour du dépôt, Streamlit Community Cloud peut relancer app.py en gardant l'ancienne
 # version des modules en mémoire : on les recharge pour que le code reste cohérent.
-for _mod in (an, du, sc, pf, al, ta):
+for _mod in (an, du, sc, pf, al, ta, tb):
     importlib.reload(_mod)
 
 st.set_page_config(page_title="Univers d'actions – Analyse et portefeuille", page_icon="📊", layout="wide")
@@ -219,23 +220,6 @@ if HAS_CAP:
     full["mcap"] = full["ticker"].map(_c["mcap_usd_bn"])
     W_CAP = full["mcap"] / full["ticker"].map(_c["lignes_univers"])
     W_CAP = W_CAP / W_CAP.sum()
-# Historique Bloomberg (104 semaines au 13/11/2026) : contrôle a posteriori, sans effet sur la construction
-BETAS, PX_W = du.load_betas(), du.load_weekly_prices()
-HAS_HIST = (BETAS is not None and PX_W is not None and full["ticker"].isin(BETAS["ticker"]).all()
-            and full["ticker"].isin(PX_W.columns).all())
-if HAS_HIST:
-    _b = BETAS.set_index("ticker")
-    full["beta"] = full["ticker"].map(_b["beta_usd_adj"])
-    full["beta_raw"] = full["ticker"].map(_b["beta_usd_raw"])
-    full["vol_hist"] = full["ticker"].map(_b["vol_hist_usd"])
-    RET_W = PX_W[full["ticker"].tolist()].pct_change().dropna()
-    COV_HIST = np.cov(RET_W.to_numpy(float), rowvar=False) * 52
-    _C = np.corrcoef(RET_W.to_numpy(float), rowvar=False)
-    _iu = np.triu_indices(len(full), 1)
-    _sub, _sec = full["subindustry"].to_numpy(object), full["sector"].to_numpy(object)
-    _ss, _se = (_sub[:, None] == _sub[None, :])[_iu], (_sec[:, None] == _sec[None, :])[_iu]
-    RHO_MES = (float(_C[_iu][_ss].mean()), float(_C[_iu][_se & ~_ss].mean()), float(_C[_iu][~_se].mean()))
-    HIST_SPAN = f"{len(RET_W)} semaines, du {PX_W.index[0]:%d/%m/%Y} au {PX_W.index[-1]:%d/%m/%Y}"
 
 mask = df_full.sector.isin(sectors) & df_full.subindustry.isin(subs) & df_full.country.isin(countries)
 df = base.loc[mask].copy()
@@ -255,7 +239,7 @@ st.caption("Données : fichier « universe of stock 261113 » (99 titres, 17 col
 tabs = st.tabs([
     "1 · Univers", "2 · Rendement & risque", "3 · Valorisation & attentes", "4 · Critère agrégé",
     "5 · Comparaison avec la Rule of 40", "6 · ESG", "7 · Rendement attendu & frontière",
-    "8 · Portefeuille final", "Annexe", "Bonus - Track record",
+    "8 · Portefeuille final", "Annexe", "Bonus - Historique Bloomberg", "Bonus - Track record",
 ])
 # Au clic sur un onglet, la page revient au début de l'onglet (juste sous la barre figée).
 st.iframe("""<script>
@@ -1007,18 +991,22 @@ historique ne peut pas être estimée. Un test sur ces 3 sous-périodes donne un
 d'une sous-industrie, 0,19 au sein d'un secteur et −0,19 entre secteurs : la valeur négative traduit le bruit d'un
 échantillon de 3 points, pas une réalité économique. Le modèle retient donc une **structure par blocs** : corrélation
 **{RHO[0]:.2f}** entre titres de la même sous-industrie, **{RHO[1]:.2f}** au sein d'un secteur, **{RHO[2]:.2f}**
-entre secteurs. Ces niveaux sont élevés à dessein : les valeurs technologiques et de communication partagent des
-moteurs communs (cycle de l'IA, taux d'intérêt, appétit pour la croissance). Le tableau ci-dessous mesure la
-sensibilité des conclusions à ces hypothèses.
+entre secteurs. Ce choix s'appuie sur deux résultats classiques :
+
+* **Corrélation constante par groupe** : remplacer chaque corrélation par la moyenne de son groupe réduit l'erreur
+  d'estimation sans perdre l'essentiel de l'information ([Ledoit et Wolf, 2003](https://econ-papers.upf.edu/papers/691.pdf),
+  modèle à corrélation constante). Les trois blocs appliquent cette idée par sous-industrie et par secteur.
+* **Niveaux prudents** : les corrélations entre marchés d'actions augmentent en marché baissier, quand la
+  diversification serait la plus utile ([Longin et Solnik, 2001](https://faculty.essec.edu/en/research/extreme-correlation-of-international-equity-markets),
+  *Journal of Finance*). Le même effet se voit entre titres : en avril 2025, la corrélation moyenne entre les dix
+  premières valeurs du S&P 500, dominées par la technologie, est montée vers 0,8
+  ([S&P Dow Jones Indices, 2026](https://www.indexologyblog.com/2026/02/09/tech-tantrums/)). Les niveaux retenus
+  sont donc plus élevés que ceux d'une période calme.
+
+Le tableau ci-dessous mesure la sensibilité des conclusions à ces hypothèses.
 """)
-    if HAS_HIST:
-        st.markdown(f"**Contrôle sur données Bloomberg** ({HIST_SPAN}, prix en dollars) : corrélation moyenne mesurée "
-                    f"**{RHO_MES[0]:.2f}** au sein d'une sous-industrie, **{RHO_MES[1]:.2f}** au sein d'un secteur, "
-                    f"**{RHO_MES[2]:.2f}** entre secteurs. Les niveaux retenus sont donc prudents : ils surestiment le "
-                    "risque des portefeuilles diversifiés. La ligne « Mesurée » du tableau applique ces niveaux.")
     sens = []
-    _rho_sets = dict(an.RHO_SETS, **({"Mesurée": RHO_MES} if HAS_HIST else {}))
-    for nm, rh in _rho_sets.items():
+    for nm, rh in an.RHO_SETS.items():
         cov_s = an.covariance(full["vol"], an.block_correlation(full, *rh))
         P_s = build_portfolio(full, tuple(elig_all), N_TOTAL, CAP, rh)
         w_s = P_s["Poids"].reindex(full.index).fillna(0).to_numpy()
@@ -1216,8 +1204,6 @@ with tabs[7]:
                 "sharpe_ante", "rule_of_40", "Raison"] + (["esg", "esg_med_sub"] if HAS_ESG else [])
     det = P.sort_values("Poids", ascending=False)[det_cols].copy()
     det["Poids"] = det["Poids"] * 100
-    if HAS_HIST:
-        det.insert(det.columns.get_loc("vol") + 1, "Bêta", det["ticker"].map(_b["beta_usd_adj"]))
     det = det.rename(columns={"ticker": "Ticker", "name": "Société", "sector": "Secteur", "subindustry": "Sous-industrie",
                               "country": "Pays", "Poids": "Poids (%)", "mu": "Rendement attendu (%)",
                               "vol": "Volatilité (%)", "sharpe_ante": lab("sharpe_ante"),
@@ -1265,46 +1251,6 @@ with tabs[7]:
                          "Médiane univers": full[vcols].median()})
     vals.index = [lab(c) for c in vals.index]
     c2.dataframe(vals.style.format("{:.2f}"), width="stretch", height=500)
-
-    _hist_pts = []
-    if HAS_HIST:
-        st.subheader("Contrôle sur l'historique de prix")
-        st.caption(f"Prix hebdomadaires en dollars extraits de Bloomberg ({HIST_SPAN}). Les portefeuilles ne changent "
-                   "pas : leur risque est seulement mesuré sur l'historique, puis comparé à celui du modèle. Bêta contre "
-                   "le MSCI World, ajusté (0,67 × bêta mesuré + 0,33).")
-        _hw = {"Équipondéré univers (99 titres)": EW}
-        _hw.update({f"Portefeuille {nm[0].lower() + nm[1:]}": sel["Poids"] for nm, sel in ports.items()})
-        if HAS_CAP:
-            _hw[CAPW_NAME] = W_CAP
-        _hr = []
-        for nm, w_ in _hw.items():
-            wv = w_.reindex(full.index).fillna(0.0).to_numpy(float)
-            r_m, v_m = an.port_stats(wv, full["mu"].to_numpy(float), COV_FULL)
-            v_h = float(np.sqrt(wv @ COV_HIST @ wv) * 100)
-            _hr.append({"Portefeuille": nm, "Volatilité du modèle (%)": v_m, "Volatilité mesurée (%)": v_h,
-                        "Bêta (MSCI World)": float(wv @ full["beta"].to_numpy(float)),
-                        "Sharpe ex ante (modèle)": r_m / v_m, "Sharpe ex ante (volatilité mesurée)": r_m / v_h})
-        hist_t = pd.DataFrame(_hr).set_index("Portefeuille")
-        st.dataframe(hist_t.style.format(precision=2), width="stretch")
-        _e = hist_t.iloc[0]
-        _o = hist_t.loc[[c_ for c_ in PF_COLS if c_ in hist_t.index]]
-        _same = (_o["Sharpe ex ante (volatilité mesurée)"] > _e["Sharpe ex ante (volatilité mesurée)"]).all()
-        _hist_pts = [
-            "<b>Contrôle sur l'historique</b> : avec la volatilité mesurée sur deux ans, Sharpe ex ante "
-            + " ; ".join(f"{i_[13:]} {v_:.2f}" for i_, v_ in _o["Sharpe ex ante (volatilité mesurée)"].items())
-            + f" contre {_e['Sharpe ex ante (volatilité mesurée)']:.2f} pour l'équipondéré"
-            + (" : la conclusion tient sur données réelles." if _same else " : la conclusion ne tient pas pour tous les "
-               "portefeuilles sur données réelles."),
-            "<b>Bêta</b> : " + " ; ".join(f"{i_[13:]} {v_:.2f}" for i_, v_ in _o["Bêta (MSCI World)"].items())
-            + f" contre {_e['Bêta (MSCI World)']:.2f} pour l'équipondéré."
-            + "".join(f" Portefeuille{'s' if len(g_) > 1 else ''} {' et '.join(i_[13:] for i_ in g_)} : " + t_
-                      for g_, t_ in (
-                          ([i_ for i_, v_ in _o["Bêta (MSCI World)"].items() if v_ > _e["Bêta (MSCI World)"] + 0.05],
-                           "exposition au marché plus forte, une partie du rendement attendu supplémentaire rémunère "
-                           "ce risque."),
-                          ([i_ for i_, v_ in _o["Bêta (MSCI World)"].items() if v_ <= _e["Bêta (MSCI World)"] + 0.05],
-                           "exposition au marché comparable ou plus faible, l'avantage ne vient pas du marché."))
-                      if g_)]
 
     _cap_pts = []
     if HAS_CAP:
@@ -1398,7 +1344,7 @@ with tabs[7]:
             f"extra-financier coûte {comp.loc['Sharpe ex ante'].iloc[1] - comp.loc['Sharpe ex ante'].iloc[2]:.2f} de "
             f"Sharpe" + (", et les deux portefeuilles restent nettement au-dessus de l'équipondéré."
                          if comp.loc["Sharpe ex ante", PF_COLS].min() > comp.loc["Sharpe ex ante"].iloc[0] + 0.1 else ".")
-            if len(PF_COLS) > 1 else f"Meilleur Sharpe ex ante : {best}.")] + _hist_pts + _cap_pts,
+            if len(PF_COLS) > 1 else f"Meilleur Sharpe ex ante : {best}.")] + _cap_pts,
           [f"Quotas : {N_TOTAL} places réparties entre sous-industries au prorata de leur taille (plus forts restes) ; "
            "un titre n'est retenu que si son score dépasse la médiane de sa sous-industrie ; places non pourvues "
            "attribuées aux meilleurs scores restants.",
@@ -1422,17 +1368,17 @@ with tabs[8]:
 | Corrélations | Structure par blocs {RHO[0]:.2f} / {RHO[1]:.2f} / {RHO[2]:.2f}, sensibilité dans l'onglet 7 |
 | Portefeuille | 30 titres : quotas par sous-industrie, score > médiane, Sharpe ex ante maximal, 5 % maximum par titre |
 | Filtre ESG | Score ESG > médiane de la sous-industrie ; repêchage des bons scores (> médiane) dont l'ESG ≥ médiane de l'univers, priorité aux sous-industries absentes |
+| Bonus · Historique Bloomberg | Information externe au fichier : 104 semaines de prix en dollars au 13/11/2026 ; volatilité, bêtas (MSCI World) et corrélations mesurés, portefeuilles reconstruits avec un modèle à un facteur ; sans effet sur les onglets 1 à 8 |
 | Bonus · Track record | Exercice indépendant (fichier « Exercice allocation 261113 ») : 5 meilleurs sous-jacents à 20 % sur chaque période, dates choisies par programmation dynamique (optimum exact ex post, 10 réallocations au plus), détention sans rééquilibrage entre deux dates |
-| Bêtas et historique | Prix hebdomadaires en dollars (Bloomberg, 104 semaines au 13/11/2026) ; bêta = pente de la régression des rendements du titre sur ceux du MSCI World, ajusté (0,67 × brut + 0,33) ; servent à contrôler le risque, pas à la construction |
 | Capitalisations | Bloomberg, clôture du 13/11/2026 en dollars ; utilisées seulement pour le portefeuille de référence pondéré par la capitalisation et la comparaison des tailles, pas dans la construction |
 """)
     st.subheader("Limites et angles morts")
     c1, c2 = st.columns(2)
     c1.markdown("""
 **Données**
-- Construction fondée sur une seule date d'observation : volatilités estimées sur 3 rendements seulement,
-  corrélations supposées (structure par blocs). Contrôle a posteriori sur 104 semaines de prix Bloomberg :
-  volatilités proches en niveau, corrélations mesurées plus faibles que supposées.
+- Une seule date d'observation, sans historique de prix : volatilités estimées sur 3 rendements seulement,
+  corrélations supposées (structure par blocs) et non estimées. L'onglet « Bonus - Historique Bloomberg » les
+  confronte à deux ans de prix.
 - Rendements en devise locale (convention Bloomberg) : pour un investisseur en euros, la variation du dollar
   sur les titres américains (deux tiers de l'univers) n'est pas prise en compte.
 - Upside, croissance LT du BPA et PEG reposent sur le consensus des analystes : prévisions structurellement
@@ -1477,25 +1423,6 @@ with tabs[8]:
                    "portefeuille.")
         st.download_button("Télécharger les capitalisations (CSV)", CAPS.to_csv(index=False).encode(), "capitalisations.csv",
                            "text/csv")
-    if HAS_HIST:
-        st.subheader("Bêtas et volatilités historiques")
-        _bt = full[["ticker", "name", "country"]].assign(**{
-            "Bêta ajusté (MSCI World)": full["beta"], "Bêta mesuré (MSCI World)": full["beta_raw"],
-            "Bêta Bloomberg (indice local)": full["ticker"].map(_b["beta_local_bbg_raw"]),
-            "Corrélation avec le MSCI World": full["ticker"].map(_b["corr_mxwo"]),
-            "Volatilité historique (%)": full["vol_hist"], "Volatilité du modèle (%)": full["vol"]})
-        _bt = _bt.rename(columns={"ticker": "Ticker", "name": "Société", "country": "Pays"})
-        st.dataframe(_bt.sort_values("Bêta ajusté (MSCI World)", ascending=False).style.format(precision=2),
-                     hide_index=True, width="stretch", height=420)
-        st.caption(f"Bloomberg, prix hebdomadaires en dollars ({HIST_SPAN}). Bêta mesuré : pente de la régression des "
-                   "rendements du titre sur ceux du MSCI World ; ajusté : 0,67 × mesuré + 0,33. Le bêta Bloomberg par "
-                   "défaut est mesuré contre l'indice local du titre (AEX, DAX, S&P 500…) : il n'est pas comparable "
-                   "d'un pays à l'autre et n'est donné qu'à titre indicatif.")
-        c1_, c2_ = st.columns(2)
-        c1_.download_button("Télécharger les bêtas (CSV)", BETAS.to_csv(index=False).encode(), "betas_bloomberg.csv",
-                            "text/csv")
-        c2_.download_button("Télécharger les prix hebdomadaires (CSV)", PX_W.to_csv().encode(), "prix_hebdo_usd.csv",
-                            "text/csv")
 
     st.subheader("Table complète")
     st.dataframe(df, hide_index=True, width="stretch")
@@ -1503,7 +1430,16 @@ with tabs[8]:
 
 
 # =========================================================================== #
-# Bonus : track record d'un portefeuille dynamique (exercice indépendant, fichier « Exercice allocation 261113 »)
+# Bonus : historique Bloomberg (information externe au fichier, sans effet sur les onglets 1 à 8)
 # =========================================================================== #
 with tabs[9]:
+    tb.render(dict(full=full, ports=ports, EW=EW, W_CAP=W_CAP if HAS_CAP else None, CAPW_NAME=CAPW_NAME, RHO=RHO,
+                   rf=rf, lam=lam, ic=ic, N_TOTAL=N_TOTAL, CAP=CAP, elig_all=elig_all,
+                   elig_esg=elig_esg if HAS_ESG else None, rescue=rescue if HAS_ESG else None), show, recap)
+
+
+# =========================================================================== #
+# Bonus : track record d'un portefeuille dynamique (exercice indépendant, fichier « Exercice allocation 261113 »)
+# =========================================================================== #
+with tabs[10]:
     ta.render(show, recap)

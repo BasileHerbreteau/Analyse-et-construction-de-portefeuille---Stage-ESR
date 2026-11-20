@@ -3,7 +3,8 @@
 Application Streamlit qui analyse un univers de **99 actions** des secteurs Information Technology et Communication
 Services (fichier *universe of stock 261113*, données au 13/11/2026), construit un critère de sélection comparé à la
 **Rule of 40**, puis un **portefeuille diversifié de 30 titres (5 % maximum par ligne)** comparé à l'équipondéré.
-Un onglet **Bonus · Track record**, indépendant, traite un exercice d'allocation dynamique sur un autre jeu de données.
+Deux onglets bonus complètent l'ensemble : **Historique Bloomberg** confronte les hypothèses de risque à deux ans de
+prix, et **Track record**, indépendant, traite un exercice d'allocation dynamique sur un autre jeu de données.
 
 ## Contenu de l'application
 
@@ -33,8 +34,10 @@ Un onglet **Bonus · Track record**, indépendant, traite un exercice d'allocati
   13/11/2026.
 * **Volatilité** : écart-type annualisé de trois rendements sur des périodes disjointes, rapproché de la médiane de la
   sous-industrie pour réduire le bruit.
-* **Corrélations** : faute d'historique, structure par blocs supposée (0,70 entre titres d'une même sous-industrie,
-  0,50 au sein d'un secteur, 0,35 sinon), élevée car ces valeurs partagent des moteurs communs ; sensibilité testée.
+* **Corrélations** : faute d'historique, structure par blocs supposée (0,60 entre titres d'une même sous-industrie,
+  0,40 au sein d'un secteur, 0,25 sinon). Une corrélation moyenne par groupe réduit l'erreur d'estimation (modèle à
+  corrélation constante, Ledoit et Wolf, 2003) ; les niveaux sont prudents car les corrélations montent en marché
+  baissier (Longin et Solnik, 2001). Sensibilité testée de 0,40 / 0,25 / 0,10 à 0,80 / 0,60 / 0,40.
 * **Critère agrégé** : chaque facteur est comparé aux titres de la même sous-industrie, puis les quatre piliers sont
   moyennés à poids égal.
 * **Rendement attendu** : la prime de risque implicite donne le niveau ; le score ajoute un alpha proportionnel à la
@@ -45,31 +48,24 @@ Un onglet **Bonus · Track record**, indépendant, traite un exercice d'allocati
   sont éligibles, avec repêchage des bons scores pour garder la diversification.
 * **Capitalisations** : Bloomberg, clôture du 13/11/2026 en dollars. Elles servent seulement au portefeuille de
   référence pondéré par la capitalisation et à la comparaison des tailles, pas à la construction.
-* **Contrôle sur l'historique** : 104 semaines de prix Bloomberg en dollars, jusqu'au 13/11/2026, mesurent après coup
-  la volatilité, les corrélations et le bêta (contre le MSCI World) des portefeuilles, sans modifier leur construction.
 
 ## Résultats
 
 | | Équipondéré (99) | Sans ESG | Avec filtre ESG | Pondéré par la capitalisation (99) |
 | --- | --- | --- | --- | --- |
-| Rendement attendu | 11,6 % | 19,0 % | 14,2 % | 12,9 % |
-| Volatilité estimée | 32,8 % | 27,0 % | 24,2 % | 33,5 % |
-| Sharpe ex ante | 0,36 | 0,71 | 0,59 | 0,39 |
-| Volatilité mesurée (2 ans) | 22,4 % | 25,8 % | 21,3 % | 22,5 % |
-| Sharpe avec la volatilité mesurée | 0,52 | 0,74 | 0,67 | 0,57 |
-| Bêta (MSCI World, ajusté) | 1,29 | 1,40 | 1,24 | 1,31 |
+| Rendement attendu | 11,6 % | 18,9 % | 14,2 % | 12,9 % |
+| Volatilité estimée | 29,3 % | 24,1 % | 21,7 % | 30,6 % |
+| Sharpe ex ante | 0,40 | 0,78 | 0,65 | 0,42 |
 | Score ESG moyen (Bloomberg) | 4,81 | 4,66 | 5,44 | 4,90 |
-| Capitalisation médiane des lignes | 39 Md$ | 146 Md$ | 95 Md$ | 39 Md$ |
+| Capitalisation médiane des lignes | 39 Md$ | 142 Md$ | 95 Md$ | 39 Md$ |
 
-Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes,
-et avec la volatilité mesurée sur deux ans d'historique. Les corrélations mesurées (0,43 / 0,22 / 0,11) sont plus
-faibles que celles du modèle : l'hypothèse est prudente.
+Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes.
 
 ## Limites
 
 **Données**
-* Construction fondée sur une seule date d'observation : volatilités estimées sur trois rendements, corrélations
-  supposées. L'historique Bloomberg ne sert qu'au contrôle a posteriori.
+* Une seule date d'observation, sans historique de prix : volatilités estimées sur trois rendements, corrélations
+  supposées et non estimées (confrontées à deux ans de prix dans le bonus Historique Bloomberg).
 * Rendements en devise locale (convention Bloomberg) : pour un investisseur en euros, la variation du dollar sur les titres américains
   (deux tiers de l'univers) n'est pas prise en compte.
 * Upside, croissance attendue et PEG reposent sur le consensus des analystes, structurellement optimiste.
@@ -83,6 +79,29 @@ faibles que celles du modèle : l'hypothèse est prudente.
 * Le portefeuille peut pencher vers des titres plus sensibles au marché ou d'un même style (croissance) : une partie
   de sa performance viendrait alors de ces paris plutôt que de la sélection des titres.
 * Portefeuille construit une seule fois : ni rééquilibrage dans le temps, ni frais de transaction.
+
+## Bonus · Historique Bloomberg
+
+Information **externe** au fichier Excel, sans effet sur les parties 1 à 3 : 104 semaines de prix en dollars extraites
+de Bloomberg (15/11/2024 – 13/11/2026), avec le MSCI World comme marché.
+
+* **Volatilité** : médiane estimée 43,7 % contre 41,8 % mesurée ; corrélation de rang 0,66. L'estimation sur trois
+  rendements donne le bon niveau de risque mais classe moins bien les titres entre eux.
+* **Bêtas** : pente de la régression des rendements hebdomadaires du titre sur ceux du MSCI World (bêta de 1,40 : le
+  titre varie en moyenne de 1,40 % quand le marché varie de 1 %), avec la version ajustée de Blume (0,67 × bêta + 0,33).
+* **Corrélations** : mesurées 0,43 / 0,22 / 0,11 contre 0,60 / 0,40 / 0,25 supposées : l'hypothèse est prudente.
+* **Portefeuilles reconstruits** avec un modèle à un facteur (Σ = σ²ₘββᵀ + D) et la volatilité mesurée, sélection
+  inchangée :
+
+| Modèle à un facteur | Équipondéré (99) | Sans ESG, onglet 8 | Sans ESG, bêtas | Avec ESG, onglet 8 | Avec ESG, bêtas |
+| --- | --- | --- | --- | --- | --- |
+| Lignes | 99 | 21 | 23 | 21 | 27 |
+| Sharpe ex ante | 0,58 | 0,83 | 0,88 | 0,71 | 0,79 |
+| Volatilité mesurée (2 ans) | 22,4 % | 25,7 % | 24,0 % | 21,2 % | 19,4 % |
+| Bêta mesuré | 1,43 | 1,59 | 1,51 | 1,35 | 1,19 |
+
+19 des 21 lignes de chaque portefeuille sont conservées : la sélection tient sur données réelles, l'historique change
+surtout les poids et ajoute quelques lignes.
 
 ## Bonus · Track record
 
@@ -127,6 +146,7 @@ streamlit run app.py
 L'application s'ouvre dans le navigateur à l'adresse http://localhost:8501. Le classeur Excel du bonus s'ouvre aussi
 directement depuis le dossier `resultats/`.
 
-Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations, historique Bloomberg), `analytics.py` (volatilité, frontière), `scoring.py`
-(z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection, optimisation). Bonus : `allocation.py`
-(optimisation et track record), `tab_allocation.py` (onglet), `export_allocation_excel.py` (classeur Excel).
+Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations, historique Bloomberg), `analytics.py`
+(volatilité, frontière), `scoring.py` (z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection,
+optimisation). Bonus : `tab_bloomberg.py` (historique Bloomberg, modèle à un facteur), `allocation.py` (optimisation et
+track record), `tab_allocation.py` (onglet), `export_allocation_excel.py` (classeur Excel).
