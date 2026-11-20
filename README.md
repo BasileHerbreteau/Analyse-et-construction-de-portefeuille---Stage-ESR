@@ -3,8 +3,8 @@
 Application Streamlit qui analyse un univers de **99 actions** des secteurs Information Technology et Communication
 Services (fichier *universe of stock 261113*, données au 13/11/2026), construit un critère de sélection comparé à la
 **Rule of 40**, puis un **portefeuille diversifié de 30 titres (5 % maximum par ligne)** comparé à l'équipondéré.
-Deux onglets bonus complètent l'ensemble : **Historique Bloomberg** confronte les hypothèses de risque à deux ans de
-prix, et **Track record**, indépendant, traite un exercice d'allocation dynamique sur un autre jeu de données.
+L'onglet bonus **Historique Bloomberg** confronte les hypothèses de risque à deux ans de prix, et l'onglet
+**Partie 3 · Track record**, indépendant, traite un exercice d'allocation dynamique sur un autre jeu de données.
 
 ## Contenu de l'application
 
@@ -103,7 +103,7 @@ de Bloomberg (15/11/2024 – 13/11/2026), avec le MSCI World comme marché.
 19 des 21 lignes de chaque portefeuille sont conservées : la sélection tient sur données réelles, l'historique change
 surtout les poids et ajoute quelques lignes.
 
-## Bonus · Track record
+## Partie 3 · Track record
 
 Exercice **indépendant** des parties 1 à 3, sur un **autre jeu de données** (fichier *Exercice allocation 261113*) :
 cours quotidiens de 29 sous-jacents (indices sectoriels STOXX Europe 600 et EURO STOXX, Russell 2000, S&P

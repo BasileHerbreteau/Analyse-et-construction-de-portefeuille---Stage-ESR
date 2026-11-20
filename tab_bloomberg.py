@@ -162,8 +162,14 @@ def render(ctx: dict, show, recap):
                      "Volatilité mesurée (%)": float(np.sqrt(wv @ S_emp @ wv) * 100),
                      "Bêta mesuré": float(wv @ beta)})
     tab = pd.DataFrame(rows).set_index("Portefeuille")
-    st.dataframe(tab.style.format(precision=2).format({"Lignes": "{:.0f}"}), width="stretch")
-    st.caption("Tous les portefeuilles évalués avec le même modèle. Volatilité mesurée : covariance historique complète, "
+    def _tint(row):
+        n_ = row.name
+        bg = "#E3EEF9" if "sans ESG" in n_ else "#DFF3F1" if "avec filtre ESG" in n_ else ""
+        wt = "font-weight: 700" if "(bêtas)" in n_ else ""
+        return [f"background-color: {bg}; {wt}" if bg else ""] * len(row)
+
+    st.dataframe(tab.style.format(precision=2).format({"Lignes": "{:.0f}"}).apply(_tint, axis=1), width="stretch")
+    st.caption("Bleu : sans ESG ; vert : avec filtre ESG ; en gras : version avec les bêtas. Tous les portefeuilles évalués avec le même modèle. Volatilité mesurée : covariance historique complète, "
                "sans modèle. Limite : le modèle à un facteur ignore les co-mouvements propres à une sous-industrie, "
                "effet atténué par les quotas.")
 
@@ -211,15 +217,12 @@ def render(ctx: dict, show, recap):
         A, C = set(tick[a_ > 1e-6]), set(tick[c_ > 1e-6])
         ta_, tc_ = tab.loc[f"Portefeuille {lbl} (onglet 8)"], tab.loc[f"Portefeuille {lbl} (bêtas)"]
         pts.append(f"<b>Portefeuille {lbl}</b> : avec les bêtas, {len(A & C)} des {len(A)} lignes sont conservées"
-                   + (f" ; sortent {', '.join(sorted(A - C))}" if A - C else "")
-                   + (f" ; entrent {', '.join(sorted(C - A))} ({c_[tick.isin(C - A)].sum():.0%} du portefeuille)"
-                      if C - A else "")
                    + f". Sharpe ex ante {tc_['Sharpe ex ante']:.2f} contre {ta_['Sharpe ex ante']:.2f} pour la version "
                    "de l'onglet 8 sous le même modèle (variante optimisée sur ce modèle) ; bêta "
                    f"{tc_['Bêta mesuré']:.2f} contre {ta_['Bêta mesuré']:.2f} "
                    f"(équipondéré {e_b:.2f}).")
-    pts.append("Le cœur de la sélection tient sur données réelles : l'historique modifie surtout les poids et ajoute "
-               "quelques lignes." if all(
+    pts.append("Le cœur de la sélection tient avec l'analyse d'origine des données Excel : l'historique Bloomberg "
+               "modifie surtout les poids et ajoute quelques lignes." if all(
                    len(set(tick[W[f'Portefeuille {n[0].lower() + n[1:]} (onglet 8)'] > 1e-6])
                        & set(tick[var[n] > 1e-6])) >= 0.75 * (W[f'Portefeuille {n[0].lower() + n[1:]} (onglet 8)']
                                                                > 1e-6).sum() for n in var)

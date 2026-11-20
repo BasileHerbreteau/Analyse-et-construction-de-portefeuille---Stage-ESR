@@ -239,7 +239,7 @@ st.caption("Données : fichier « universe of stock 261113 » (99 titres, 17 col
 tabs = st.tabs([
     "1 · Univers", "2 · Rendement & risque", "3 · Valorisation & attentes", "4 · Critère agrégé",
     "5 · Comparaison avec la Rule of 40", "6 · ESG", "7 · Rendement attendu & frontière",
-    "8 · Portefeuille final", "Annexe", "Bonus - Historique Bloomberg", "Bonus - Track record",
+    "8 · Portefeuille final", "Annexe", "Bonus - Historique Bloomberg", "Partie 3 - Track record",
 ])
 # Au clic sur un onglet, la page revient au début de l'onglet (juste sous la barre figée).
 st.iframe("""<script>
@@ -1369,7 +1369,7 @@ with tabs[8]:
 | Portefeuille | 30 titres : quotas par sous-industrie, score > médiane, Sharpe ex ante maximal, 5 % maximum par titre |
 | Filtre ESG | Score ESG > médiane de la sous-industrie ; repêchage des bons scores (> médiane) dont l'ESG ≥ médiane de l'univers, priorité aux sous-industries absentes |
 | Bonus · Historique Bloomberg | Information externe au fichier : 104 semaines de prix en dollars au 13/11/2026 ; volatilité, bêtas (MSCI World) et corrélations mesurés, portefeuilles reconstruits avec un modèle à un facteur ; sans effet sur les onglets 1 à 8 |
-| Bonus · Track record | Exercice indépendant (fichier « Exercice allocation 261113 ») : 5 meilleurs sous-jacents à 20 % sur chaque période, dates choisies par programmation dynamique (optimum exact ex post, 10 réallocations au plus), détention sans rééquilibrage entre deux dates |
+| Partie 3 · Track record | Exercice indépendant (fichier « Exercice allocation 261113 ») : 5 meilleurs sous-jacents à 20 % sur chaque période, dates choisies par programmation dynamique (optimum exact ex post, 10 réallocations au plus), détention sans rééquilibrage entre deux dates |
 | Capitalisations | Bloomberg, clôture du 13/11/2026 en dollars ; utilisées seulement pour le portefeuille de référence pondéré par la capitalisation et la comparaison des tailles, pas dans la construction |
 """)
     st.subheader("Limites et angles morts")

@@ -1,4 +1,4 @@
-"""Onglet « Bonus - Track record » : portefeuille à allocation dynamique du 01/01/2026 au 30/10/2026.
+"""Onglet « Partie 3 - Track record » : portefeuille à allocation dynamique du 01/01/2026 au 30/10/2026.
 
 Exercice indépendant du reste de l'application : autre jeu de données (fichier « Exercice allocation 261113 »),
 sans lien avec l'univers d'actions, le score ni les filtres de la barre latérale.
