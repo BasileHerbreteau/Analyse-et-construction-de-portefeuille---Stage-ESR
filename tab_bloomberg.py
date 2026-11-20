@@ -168,8 +168,20 @@ def render(ctx: dict, show, recap):
         wt = "font-weight: 700" if "(bêtas)" in n_ else ""
         return [f"background-color: {bg}; {wt}" if bg else ""] * len(row)
 
-    st.dataframe(tab.style.format(precision=2).format({"Lignes": "{:.0f}"}).apply(_tint, axis=1), width="stretch")
-    st.caption("Bleu : sans ESG ; vert : avec filtre ESG ; en gras : version avec les bêtas. Tous les portefeuilles évalués avec le même modèle. Volatilité mesurée : covariance historique complète, "
+    disp = tab.copy().astype(object)
+    for i_ in tab.index:
+        for c_ in tab.columns:
+            fmt_ = "{:.0f}" if c_ == "Lignes" else "{:.2f}"
+            v_ = tab.at[i_, c_]
+            txt_ = fmt_.format(v_)
+            ref_ = i_.replace("(bêtas)", "(onglet 8)")
+            if "(bêtas)" in i_ and ref_ in tab.index:
+                nd_ = 0 if c_ == "Lignes" else 2
+                dv_ = round(v_, nd_) - round(tab.at[ref_, c_], nd_)  # écart des valeurs affichées
+                txt_ += " (" + ("{:+.0f}" if c_ == "Lignes" else "{:+.2f}").format(dv_) + ")"
+            disp.at[i_, c_] = txt_
+    st.dataframe(disp.style.apply(_tint, axis=1), width="stretch")
+    st.caption("Bleu : sans ESG ; vert : avec filtre ESG ; en gras : version avec les bêtas, entre parenthèses l'écart avec la version de l'onglet 8. Tous les portefeuilles évalués avec le même modèle. Volatilité mesurée : covariance historique complète, "
                "sans modèle. Limite : le modèle à un facteur ignore les co-mouvements propres à une sous-industrie, "
                "effet atténué par les quotas.")
 
