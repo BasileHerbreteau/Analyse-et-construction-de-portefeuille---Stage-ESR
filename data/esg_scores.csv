@@ -1,100 +1,100 @@
-ticker,name,esg_score,esg_scale,esg_provider,esg_date,csa_score,sp_industry,sp_company,source_url
-BESI,BE SEMICONDUCTOR,61.0,score,S&P Global ESG Score (Sustainable1),2026-10-20,60.0,SEM Semiconductors & Semiconductor Equipment,BE Semiconductor Industries N.V.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4965941
-STMPA,STMICROELECTRONI,51.0,score,S&P Global ESG Score (Sustainable1),2026-10-26,48.0,SEM Semiconductors & Semiconductor Equipment,STMicroelectronics N.V.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4582036
-VU,VUSION,70.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-DTE,DEUTSCHE TELEKOM,75.0,score,S&P Global ESG Score (Sustainable1),2026-08-25,74.0,TLS Telecommunication Services,Deutsche Telekom AG,https://www.spglobal.com/sustainable1/en/scores/results?cid=4066137
-KPN,KPN (KONIN) NV,77.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-PUB,PUBLICIS GROUPE,63.0,score,S&P Global ESG Score (Sustainable1),2026-10-06,61.0,PUB Media Movies & Entertainment,Publicis Groupe S.A.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4152438
-ASM,ASM INTL NV,81.0,score,S&P Global ESG Score (Sustainable1),2025-11-06,81.0,SEM Semiconductors & Semiconductor Equipment,ASM International NV,https://www.spglobal.com/sustainable1/en/scores/results?cid=4231951
-ASML,ASML HOLDING NV,58.0,score,S&P Global ESG Score (Sustainable1),2026-10-13,55.0,SEM Semiconductors & Semiconductor Equipment,ASML Holding N.V.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4965925
-CAP,CAPGEMINI SE,96.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-DSY,DASSAULT SYSTEME,69.0,score,S&P Global ESG Score (Sustainable1),2026-09-14,69.0,SOF Software,Dassault Systemes SE,https://www.spglobal.com/sustainable1/en/scores/results?cid=4200280
-IDR,INDRA SISTEMAS,86.0,score,S&P Global ESG Score (Sustainable1),2026-10-22,86.0,TSV IT services,Indra Sistemas S.A.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4966750
-IFX,INFINEON TECH,78.0,score,S&P Global ESG Score (Sustainable1),2026-08-26,78.0,SEM Semiconductors & Semiconductor Equipment,Infineon Technologies AG,https://www.spglobal.com/sustainable1/en/scores/results?cid=4304327
-NEM,NEMETSCHEK SE,80.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-NOKIA,NOKIA OYJ,51.0,score,S&P Global ESG Score (Sustainable1),2025-10-24,48.0,CMT Communications Equipment,Nokia Oyj,https://www.spglobal.com/sustainable1/en/scores/results?cid=4166922
-SAP,SAP SE,58.0,score,S&P Global ESG Score (Sustainable1),2026-09-14,56.0,SOF Software,SAP SE,https://www.spglobal.com/sustainable1/en/scores/results?cid=4207967
-AUTO,AUTOTRADER GROUP,44.0,score,S&P Global ESG Score (Sustainable1),2025-09-04,39.0,IMS Interactive Media Services & Home Entertainment,Autotrader Group plc,https://www.spglobal.com/sustainable1/en/scores/results?cid=4966329
-HTO,HELLENIC TELECOM,69.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-INF,INFORMA PLC,99.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-VEND,VEND MARKE CL,83.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-VOD,VODAFONE GROUP,53.0,score,S&P Global ESG Score (Sustainable1),2026-09-28,50.0,TLS Telecommunication Services,Vodafone Group Public Limited Company,https://www.spglobal.com/sustainable1/en/scores/results?cid=4135789
-IFCN,INFICON-REG,40.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-LOGN,LOGITECH INTER-R,68.0,score,S&P Global ESG Score (Sustainable1),2026-09-08,68.0,THQ Computers & Peripherals and Office Electronics,Logitech International S.A.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4965921
-SGE,SAGE GROUP PLC/T,50.0,score,S&P Global ESG Score (Sustainable1),2025-08-27,46.0,SOF Software,The Sage Group plc,https://www.spglobal.com/sustainable1/en/scores/results?cid=4280892
-SOI,SOITEC,88.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-SOP,SOPRA STERIA GRO,64.0,score,S&P Global ESG Score (Sustainable1),2026-09-01,64.0,TSV IT services,Sopra Steria Group SA,https://www.spglobal.com/sustainable1/en/scores/results?cid=4609861
-STMMI,STMICROELECTRONI,51.0,score,S&P Global ESG Score (Sustainable1),2026-10-26,48.0,SEM Semiconductors & Semiconductor Equipment,STMicroelectronics N.V.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4582036
-TPRO,TECHNOPROBE SPA,33.0,score,S&P Global ESG Score (Sustainable1),2026-08-10,27.0,SEM Semiconductors & Semiconductor Equipment,Technoprobe S.p.A.,https://www.spglobal.com/sustainable1/en/scores/results?cid=7847435
-TEMN,TEMENOS AG-REG,100.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-FOX,FOX CORP - B,34.0,score,S&P Global ESG Score (Sustainable1),2026-01-12,32.0,PUB Media Movies & Entertainment,Fox Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=13518181
-RDDT,REDDIT INC-A,,score,Non noté par S&P Global (Bloomberg),,,,,
-TLS,TELSTRA GROUP LT,55.0,score,S&P Global ESG Score (Sustainable1),2026-09-21,51.0,TLS Telecommunication Services,Telstra Group Limited,https://www.spglobal.com/sustainable1/en/scores/results?cid=4160289
-VZ,VERIZON COMMUNIC,41.0,score,S&P Global ESG Score (Sustainable1),2026-01-29,35.0,TLS Telecommunication Services,Verizon Communications Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4057229
-DIS,WALT DISNEY CO/T,39.0,score,S&P Global ESG Score (Sustainable1),2026-07-16,36.0,PUB Media Movies & Entertainment,The Walt Disney Company,https://www.spglobal.com/sustainable1/en/scores/results?cid=4097175
-ADBE,ADOBE INC,48.0,score,S&P Global ESG Score (Sustainable1),2026-09-22,47.0,SOF Software,Adobe Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4047847
-AMAT,APPLIED MATERIAL,41.0,score,S&P Global ESG Score (Sustainable1),2026-03-03,36.0,SEM Semiconductors & Semiconductor Equipment,Applied Materials Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4073928
-ANET,ARISTA NETWORKS,39.0,score,S&P Global ESG Score (Sustainable1),2025-10-15,37.0,CMT Communications Equipment,Arista Networks Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4970981
-ADSK,AUTODESK INC,97.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-AVGO,BROADCOM INC,43.0,score,S&P Global ESG Score (Sustainable1),2026-08-04,35.0,SEM Semiconductors & Semiconductor Equipment,Broadcom Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4970473
-CSCO,CISCO SYSTEMS,66.0,score,S&P Global ESG Score (Sustainable1),2026-10-27,66.0,CMT Communications Equipment,Cisco Systems Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4047857
-FLEX,FLEX LTD,95.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-HUBS,HUBSPOT INC,56.0,score,S&P Global ESG Score (Sustainable1),2025-10-24,56.0,SOF Software,HubSpot Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4296620
-IBM,IBM,52.0,score,S&P Global ESG Score (Sustainable1),2026-06-24,48.0,TSV IT services,International Business Machines Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4000193
-INTC,INTEL CORP,53.0,score,S&P Global ESG Score (Sustainable1),2026-01-22,50.0,SEM Semiconductors & Semiconductor Equipment,Intel Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4025746
-MRVL,MARVELL TECHNOLO,76.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-MSFT,MICROSOFT CORP,46.0,score,S&P Global ESG Score (Sustainable1),2026-09-22,43.0,SOF Software,Microsoft Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4004214
-MDB,MONGODB INC,36.0,score,S&P Global ESG Score (Sustainable1),2026-03-03,30.0,TSV IT services,MongoDB Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4616848
-NVDA,NVIDIA CORP,61.0,score,S&P Global ESG Score (Sustainable1),2026-09-22,60.0,SEM Semiconductors & Semiconductor Equipment,NVIDIA Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4094286
-OKTA,OKTA INC,44.0,score,S&P Global ESG Score (Sustainable1),2026-01-16,42.0,TSV IT services,Okta Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5202047
-PANW,PALO ALTO NETWOR,50.0,score,S&P Global ESG Score (Sustainable1),2025-11-07,47.0,SOF Software,Palo Alto Networks Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4318651
-CRM,SALESFORCE INC,53.0,score,S&P Global ESG Score (Sustainable1),2026-10-06,50.0,SOF Software,Salesforce Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4205848
-IOT,SAMSARA INC-CL A,39.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-WDC,WESTERN DIGITAL,55.0,score,S&P Global ESG Score (Sustainable1),2026-02-09,54.0,THQ Computers & Peripherals and Office Electronics,Western Digital Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4071659
-GOOGL,ALPHABET INC-A,29.0,score,S&P Global ESG Score (Sustainable1),2026-10-29,26.0,IMS Interactive Media Services & Home Entertainment,Alphabet Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4633618
-T,AT&T INC,52.0,score,S&P Global ESG Score (Sustainable1),2026-07-22,52.0,TLS Telecommunication Services,AT&T Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4024242
-CHTR,CHARTER COMMUN-A,16.0,score,S&P Global ESG Score (Sustainable1),2026-09-07,13.0,PUB Media Movies & Entertainment,Charter Communications Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4121481
-FOXA,FOX CORP - A,34.0,score,S&P Global ESG Score (Sustainable1),2026-01-12,32.0,PUB Media Movies & Entertainment,Fox Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=13518181
-NFLX,NETFLIX INC,24.0,score,S&P Global ESG Score (Sustainable1),2026-11-16,22.0,PUB Media Movies & Entertainment,Netflix Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4104060
-OMC,OMNICOM GROUP,78.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-TTWO,TAKE-TWO INTERAC,40.0,score,S&P Global ESG Score (Sustainable1),2026-01-05,35.0,IMS Interactive Media Services & Home Entertainment,Take-Two Interactive Software Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4965854
-ADI,ANALOG DEVICES,45.0,score,S&P Global ESG Score (Sustainable1),2026-10-07,40.0,SEM Semiconductors & Semiconductor Equipment,Analog Devices Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4113211
-AAPL,APPLE INC,32.0,score,S&P Global ESG Score (Sustainable1),2026-11-10,27.0,THQ Computers & Peripherals and Office Electronics,Apple Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4004205
-ALAB,ASTERA LABS INC,,score,Non noté par S&P Global (Bloomberg),,,,,
-CDNS,CADENCE DESIGN,49.0,score,S&P Global ESG Score (Sustainable1),2026-11-16,46.0,SOF Software,Cadence Design Systems Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4963284
-CHKP,CHECK POINT SOFT,83.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-NET,CLOUDFLARE INC-A,38.0,score,S&P Global ESG Score (Sustainable1),2026-07-09,33.0,TSV IT services,Cloudflare Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4586618
-COHR,COHERENT CORP,75.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-GLW,CORNING INC,87.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-CRDO,CREDO TECHNOLOGY,,score,Non noté par S&P Global (Bloomberg),,,,,
-CRWD,CROWDSTRIKE HO-A,25.0,score,S&P Global ESG Score (Sustainable1),2025-08-11,19.0,SOF Software,CrowdStrike Holdings Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=12917530
-DDOG,DATADOG INC-A,26.0,score,S&P Global ESG Score (Sustainable1),2026-02-16,20.0,SOF Software,Datadog Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5222696
-DELL,DELL TECHN-C,47.0,score,S&P Global ESG Score (Sustainable1),2026-01-28,40.0,THQ Computers & Peripherals and Office Electronics,Dell Technologies Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4625099
-P,EVERPURE INC-A,54.0,score,S&P Global ESG Score (Sustainable1),2025-12-24,53.0,THQ Computers & Peripherals and Office Electronics,Everpure Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4972136
-FFIV,F5 INC,29.0,score,S&P Global ESG Score (Sustainable1),2026-09-29,23.0,CMT Communications Equipment,F5 Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4135450
-HPE,HEWLETT PACKA,57.0,score,S&P Global ESG Score (Sustainable1),2026-03-20,54.0,THQ Computers & Peripherals and Office Electronics,Hewlett Packard Enterprise Company,https://www.spglobal.com/sustainable1/en/scores/results?cid=4641383
-HPQ,HP INC,73.0,score,S&P Global ESG Score (Sustainable1),2026-02-06,73.0,THQ Computers & Peripherals and Office Electronics,HP Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=105223
-INTU,INTUIT INC,57.0,score,S&P Global ESG Score (Sustainable1),2026-10-01,55.0,SOF Software,Intuit Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4048157
-JBL,JABIL INC,49.0,score,S&P Global ESG Score (Sustainable1),2025-07-18,44.0,ITC Electronic Equipment Instruments & Components,Jabil Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4069059
-KEYS,KEYSIGHT TEC,91.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-KLAC,KLA CORP,91.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-MCHP,MICROCHIP TECH,39.0,score,S&P Global ESG Score (Sustainable1),2026-10-19,33.0,SEM Semiconductors & Semiconductor Equipment,Microchip Technology Incorporated,https://www.spglobal.com/sustainable1/en/scores/results?cid=4133448
-MSI,MOTOROLA SOLUTIO,43.0,score,S&P Global ESG Score (Sustainable1),2026-10-08,41.0,CMT Communications Equipment,Motorola Solutions Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4280272
-NTAP,NETAPP INC,70.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-NXPI,NXP SEMICONDUCTO,82.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-ON,ON SEMICONDUCTOR,90.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-ORCL,ORACLE CORP,35.0,score,S&P Global ESG Score (Sustainable1),2026-09-10,31.0,SOF Software,Oracle Corporation,https://www.spglobal.com/sustainable1/en/scores/results?cid=4041363
-PLTR,PALANTIR TECHN-A,24.0,score,S&P Global ESG Score (Sustainable1),2026-09-09,17.0,SOF Software,Palantir Technologies Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5148548
-PTC,PTC INC,84.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-QCOM,QUALCOMM INC,57.0,score,S&P Global ESG Score (Sustainable1),2025-10-27,56.0,SEM Semiconductors & Semiconductor Equipment,QUALCOMM Incorporated,https://www.spglobal.com/sustainable1/en/scores/results?cid=4062496
-SHOP,SHOPIFY INC - A,31.0,score,S&P Global ESG Score (Sustainable1),2026-08-12,24.0,TSV IT services,Shopify Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4421687
-SWKS,SKYWORKS SOLUTIO,74.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-SNOW,SNOWFLAKE INC,33.0,score,S&P Global ESG Score (Sustainable1),2026-08-25,25.0,TSV IT services,Snowflake Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5285926
-SNPS,SYNOPSYS INC,45.0,score,S&P Global ESG Score (Sustainable1),2026-10-05,41.0,SOF Software,Synopsys Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4089979
-TDY,TELEDYNE TECH,59.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-TER,TERADYNE INC,36.0,score,S&P Global ESG Score (Sustainable1),2025-12-03,29.0,SEM Semiconductors & Semiconductor Equipment,Teradyne Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4071231
-TXN,TEXAS INSTRUMENT,40.0,score,S&P Global ESG Score (Sustainable1),2025-12-29,36.0,SEM Semiconductors & Semiconductor Equipment,Texas Instruments Incorporated,https://www.spglobal.com/sustainable1/en/scores/results?cid=4112734
-TSEM,TOWER SEMICONDCT,61.0,score,S&P Global ESG Score (Bloomberg),2026-11-19,,,,
-TWLO,TWILIO INC - A,42.0,score,S&P Global ESG Score (Sustainable1),2026-09-18,35.0,TSV IT services,Twilio Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=4757889
-ZM,ZOOM COMMUNICATI,31.0,score,S&P Global ESG Score (Sustainable1),2026-11-04,25.0,SOF Software,Zoom Communications Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5248785
-ZS,ZSCALER INC,44.0,score,S&P Global ESG Score (Sustainable1),2025-12-31,41.0,SOF Software,Zscaler Inc.,https://www.spglobal.com/sustainable1/en/scores/results?cid=5174695
+ticker,name,esg_score,esg_scale,esg_provider,esg_date,source_url
+BESI,BE SEMICONDUCTOR,6.51,score,Bloomberg ESG Score,relevé de novembre 2026,
+STMPA,STMICROELECTRONI,5.96,score,Bloomberg ESG Score,relevé de novembre 2026,
+VU,VUSION,4.23,score,Bloomberg ESG Score,relevé de novembre 2026,
+DTE,DEUTSCHE TELEKOM,5.56,score,Bloomberg ESG Score,relevé de novembre 2026,
+KPN,KPN (KONIN) NV,5.13,score,Bloomberg ESG Score,relevé de novembre 2026,
+PUB,PUBLICIS GROUPE,5.82,score,Bloomberg ESG Score,relevé de novembre 2026,
+ASM,ASM INTL NV,6.05,score,Bloomberg ESG Score,relevé de novembre 2026,
+ASML,ASML HOLDING NV,6.35,score,Bloomberg ESG Score,relevé de novembre 2026,
+CAP,CAPGEMINI SE,5.86,score,Bloomberg ESG Score,relevé de novembre 2026,
+DSY,DASSAULT SYSTEME,4.61,score,Bloomberg ESG Score,relevé de novembre 2026,
+IDR,INDRA SISTEMAS,6.27,score,Bloomberg ESG Score,relevé de novembre 2026,
+IFX,INFINEON TECH,5.95,score,Bloomberg ESG Score,relevé de novembre 2026,
+NEM,NEMETSCHEK SE,2.77,score,Bloomberg ESG Score,relevé de novembre 2026,
+NOKIA,NOKIA OYJ,6.18,score,Bloomberg ESG Score,relevé de novembre 2026,
+SAP,SAP SE,5.88,score,Bloomberg ESG Score,relevé de novembre 2026,
+AUTO,AUTOTRADER GROUP,7.01,score,Bloomberg ESG Score,relevé de novembre 2026,
+HTO,HELLENIC TELECOM,4.86,score,Bloomberg ESG Score,relevé de novembre 2026,
+INF,INFORMA PLC,4.41,score,Bloomberg ESG Score,relevé de novembre 2026,
+VEND,VEND MARKE CL,4.18,score,Bloomberg ESG Score,relevé de novembre 2026,
+VOD,VODAFONE GROUP,4.92,score,Bloomberg ESG Score,relevé de novembre 2026,
+IFCN,INFICON-REG,3.64,score,Bloomberg ESG Score,relevé de novembre 2026,
+LOGN,LOGITECH INTER-R,5.52,score,Bloomberg ESG Score,relevé de novembre 2026,
+SGE,SAGE GROUP PLC/T,6.47,score,Bloomberg ESG Score,relevé de novembre 2026,
+SOI,SOITEC,4.85,score,Bloomberg ESG Score,relevé de novembre 2026,
+SOP,SOPRA STERIA GRO,4.39,score,Bloomberg ESG Score,relevé de novembre 2026,
+STMMI,STMICROELECTRONI,5.96,score,Bloomberg ESG Score,relevé de novembre 2026,
+TPRO,TECHNOPROBE SPA,4.69,score,Bloomberg ESG Score,relevé de novembre 2026,
+TEMN,TEMENOS AG-REG,6.47,score,Bloomberg ESG Score,relevé de novembre 2026,
+FOX,FOX CORP - B,3.26,score,Bloomberg ESG Score,relevé de novembre 2026,
+RDDT,REDDIT INC-A,2.37,score,Bloomberg ESG Score,relevé de novembre 2026,
+TLS,TELSTRA GROUP LT,4.62,score,Bloomberg ESG Score,relevé de novembre 2026,
+VZ,VERIZON COMMUNIC,5.38,score,Bloomberg ESG Score,relevé de novembre 2026,
+DIS,WALT DISNEY CO/T,3.7,score,Bloomberg ESG Score,relevé de novembre 2026,
+ADBE,ADOBE INC,6.66,score,Bloomberg ESG Score,relevé de novembre 2026,
+AMAT,APPLIED MATERIAL,6.41,score,Bloomberg ESG Score,relevé de novembre 2026,
+ANET,ARISTA NETWORKS,4.12,score,Bloomberg ESG Score,relevé de novembre 2026,
+ADSK,AUTODESK INC,4.71,score,Bloomberg ESG Score,relevé de novembre 2026,
+AVGO,BROADCOM INC,5.01,score,Bloomberg ESG Score,relevé de novembre 2026,
+CSCO,CISCO SYSTEMS,6.02,score,Bloomberg ESG Score,relevé de novembre 2026,
+FLEX,FLEX LTD,3.98,score,Bloomberg ESG Score,relevé de novembre 2026,
+HUBS,HUBSPOT INC,5.74,score,Bloomberg ESG Score,relevé de novembre 2026,
+IBM,IBM,3.58,score,Bloomberg ESG Score,relevé de novembre 2026,
+INTC,INTEL CORP,5.57,score,Bloomberg ESG Score,relevé de novembre 2026,
+MRVL,MARVELL TECHNOLO,6.47,score,Bloomberg ESG Score,relevé de novembre 2026,
+MSFT,MICROSOFT CORP,4.69,score,Bloomberg ESG Score,relevé de novembre 2026,
+MDB,MONGODB INC,3.79,score,Bloomberg ESG Score,relevé de novembre 2026,
+NVDA,NVIDIA CORP,6.1,score,Bloomberg ESG Score,relevé de novembre 2026,
+OKTA,OKTA INC,3.68,score,Bloomberg ESG Score,relevé de novembre 2026,
+PANW,PALO ALTO NETWOR,5.07,score,Bloomberg ESG Score,relevé de novembre 2026,
+CRM,SALESFORCE INC,5.01,score,Bloomberg ESG Score,relevé de novembre 2026,
+IOT,SAMSARA INC-CL A,3.3,score,Bloomberg ESG Score,relevé de novembre 2026,
+WDC,WESTERN DIGITAL,4.84,score,Bloomberg ESG Score,relevé de novembre 2026,
+GOOGL,ALPHABET INC-A,3.92,score,Bloomberg ESG Score,relevé de novembre 2026,
+T,AT&T INC,5.44,score,Bloomberg ESG Score,relevé de novembre 2026,
+CHTR,CHARTER COMMUN-A,3.83,score,Bloomberg ESG Score,relevé de novembre 2026,
+FOXA,FOX CORP - A,3.26,score,Bloomberg ESG Score,relevé de novembre 2026,
+NFLX,NETFLIX INC,4.1,score,Bloomberg ESG Score,relevé de novembre 2026,
+OMC,OMNICOM GROUP,4.29,score,Bloomberg ESG Score,relevé de novembre 2026,
+TTWO,TAKE-TWO INTERAC,3.01,score,Bloomberg ESG Score,relevé de novembre 2026,
+ADI,ANALOG DEVICES,5.51,score,Bloomberg ESG Score,relevé de novembre 2026,
+AAPL,APPLE INC,4.65,score,Bloomberg ESG Score,relevé de novembre 2026,
+ALAB,ASTERA LABS INC,1.56,score,Bloomberg ESG Score,relevé de novembre 2026,
+CDNS,CADENCE DESIGN,6.0,score,Bloomberg ESG Score,relevé de novembre 2026,
+CHKP,CHECK POINT SOFT,5.16,score,Bloomberg ESG Score,relevé de novembre 2026,
+NET,CLOUDFLARE INC-A,3.86,score,Bloomberg ESG Score,relevé de novembre 2026,
+COHR,COHERENT CORP,4.76,score,Bloomberg ESG Score,relevé de novembre 2026,
+GLW,CORNING INC,3.34,score,Bloomberg ESG Score,relevé de novembre 2026,
+CRDO,CREDO TECHNOLOGY,3.62,score,Bloomberg ESG Score,relevé de novembre 2026,
+CRWD,CROWDSTRIKE HO-A,3.71,score,Bloomberg ESG Score,relevé de novembre 2026,
+DDOG,DATADOG INC-A,3.56,score,Bloomberg ESG Score,relevé de novembre 2026,
+DELL,DELL TECHN-C,5.2,score,Bloomberg ESG Score,relevé de novembre 2026,
+P,EVERPURE INC-A,4.82,score,Bloomberg ESG Score,relevé de novembre 2026,
+FFIV,F5 INC,3.6,score,Bloomberg ESG Score,relevé de novembre 2026,
+HPE,HEWLETT PACKA,5.25,score,Bloomberg ESG Score,relevé de novembre 2026,
+HPQ,HP INC,5.41,score,Bloomberg ESG Score,relevé de novembre 2026,
+INTU,INTUIT INC,5.8,score,Bloomberg ESG Score,relevé de novembre 2026,
+JBL,JABIL INC,4.82,score,Bloomberg ESG Score,relevé de novembre 2026,
+KEYS,KEYSIGHT TEC,5.21,score,Bloomberg ESG Score,relevé de novembre 2026,
+KLAC,KLA CORP,5.61,score,Bloomberg ESG Score,relevé de novembre 2026,
+MCHP,MICROCHIP TECH,5.49,score,Bloomberg ESG Score,relevé de novembre 2026,
+MSI,MOTOROLA SOLUTIO,4.06,score,Bloomberg ESG Score,relevé de novembre 2026,
+NTAP,NETAPP INC,5.03,score,Bloomberg ESG Score,relevé de novembre 2026,
+NXPI,NXP SEMICONDUCTO,6.45,score,Bloomberg ESG Score,relevé de novembre 2026,
+ON,ON SEMICONDUCTOR,5.8,score,Bloomberg ESG Score,relevé de novembre 2026,
+ORCL,ORACLE CORP,4.19,score,Bloomberg ESG Score,relevé de novembre 2026,
+PLTR,PALANTIR TECHN-A,3.06,score,Bloomberg ESG Score,relevé de novembre 2026,
+PTC,PTC INC,5.27,score,Bloomberg ESG Score,relevé de novembre 2026,
+QCOM,QUALCOMM INC,7.52,score,Bloomberg ESG Score,relevé de novembre 2026,
+SHOP,SHOPIFY INC - A,3.34,score,Bloomberg ESG Score,relevé de novembre 2026,
+SWKS,SKYWORKS SOLUTIO,5.58,score,Bloomberg ESG Score,relevé de novembre 2026,
+SNOW,SNOWFLAKE INC,1.77,score,Bloomberg ESG Score,relevé de novembre 2026,
+SNPS,SYNOPSYS INC,6.11,score,Bloomberg ESG Score,relevé de novembre 2026,
+TDY,TELEDYNE TECH,2.47,score,Bloomberg ESG Score,relevé de novembre 2026,
+TER,TERADYNE INC,6.01,score,Bloomberg ESG Score,relevé de novembre 2026,
+TXN,TEXAS INSTRUMENT,6.1,score,Bloomberg ESG Score,relevé de novembre 2026,
+TSEM,TOWER SEMICONDCT,2.63,score,Bloomberg ESG Score,relevé de novembre 2026,
+TWLO,TWILIO INC - A,4.46,score,Bloomberg ESG Score,relevé de novembre 2026,
+ZM,ZOOM COMMUNICATI,3.57,score,Bloomberg ESG Score,relevé de novembre 2026,
+ZS,ZSCALER INC,3.56,score,Bloomberg ESG Score,relevé de novembre 2026,
