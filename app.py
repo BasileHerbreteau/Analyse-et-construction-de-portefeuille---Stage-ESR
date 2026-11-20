@@ -1271,8 +1271,15 @@ with tabs[7]:
                             f"Lignes sous {seuil} Md$": int((held & (mc < seuil)).sum()),
                             f"Poids sous {seuil} Md$ (%)": 100 * float(w_[mc < seuil].sum())})
         cap_tab = pd.DataFrame(cap_tab).set_index("Portefeuille")
-        st.dataframe(cap_tab.style.format({c_: "{:.0f}" if "Lignes" in c_ else "{:.1f}" for c_ in cap_tab.columns}),
-                     width="stretch")
+        _cap_bg = {comp.columns[0]: "#EEF1F5", CAPW_NAME: "#E3EEF9",
+                   **{c_: bg_ for c_, bg_ in zip(PF_COLS, ["rgba(214, 69, 61, .13)", "rgba(0, 161, 154, .15)"])}}
+
+        def _cap_tint(row):
+            bg_ = _cap_bg.get(row.name, "")
+            wt_ = "; font-weight: 700" if row.name in PF_COLS else ""
+            return [f"background-color: {bg_}{wt_}" if bg_ else ""] * len(row)
+        st.dataframe(cap_tab.style.format({c_: "{:.0f}" if "Lignes" in c_ else "{:.1f}" for c_ in cap_tab.columns})
+                     .apply(_cap_tint, axis=1), width="stretch")
 
         w_s = ports["Sans ESG"]["Poids"].reindex(full.index).fillna(0.0)
         w_e = ports["Avec filtre ESG"]["Poids"].reindex(full.index).fillna(0.0) if "Avec filtre ESG" in ports \

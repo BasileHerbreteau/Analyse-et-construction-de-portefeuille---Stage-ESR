@@ -50,7 +50,7 @@ L'onglet bonus **Historique Bloomberg** confronte les hypothèses de risque à d
 | Volatilité estimée | 29,3 % | 24,1 % | 21,7 % | 30,6 % |
 | Sharpe ex ante | 0,40 | 0,78 | 0,65 | 0,42 |
 | Score ESG moyen (Bloomberg) | 4,81 | 4,66 | 5,44 | 4,90 |
-| Capitalisation moyenne des lignes | 273 Md$ | 581 Md$ | 561 Md$ | 273 Md$ |
+| Capitalisation moyenne pondérée | 273 Md$ | 584 Md$ | 576 Md$ | 2 791 Md$ |
 
 Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes.
 
