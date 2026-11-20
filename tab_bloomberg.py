@@ -18,7 +18,7 @@ import portfolio as pf
 import scoring as sc
 
 TEMPLATE = "plotly_white"
-C_NAVY, C_BLUE, C_TEAL, C_GREY, C_LIGHT = du.C_NAVY, du.C_BLUE, du.C_TEAL, du.C_GREY, du.C_LIGHT
+C_NAVY, C_BLUE, C_TEAL, C_GREY, C_LIGHT, C_RED = du.C_NAVY, du.C_BLUE, du.C_TEAL, du.C_GREY, du.C_LIGHT, du.C_RED
 E_, M_ = "Volatilité estimée (%)", "Volatilité mesurée (%)"
 
 
@@ -61,10 +61,8 @@ def render(ctx: dict, show, recap):
     sig_m = float(ret["MXWO"].std() * np.sqrt(52))
     span = f"{len(ret)} semaines, du {px.index[0]:%d/%m/%Y} au {px.index[-1]:%d/%m/%Y}"
 
-    st.caption(f"Onglet complémentaire. Les onglets 1 à 8 n'utilisent aucun historique de prix : la volatilité y est "
-               f"estimée à partir du fichier Excel et les corrélations sont supposées. Ici, ces hypothèses sont "
-               f"comparées aux prix hebdomadaires en dollars extraits de Bloomberg ({span}), puis les portefeuilles "
-               f"sont reconstruits avec les bêtas. Rien dans cet onglet ne modifie les onglets principaux.")
+    st.caption(f"Information externe au fichier Excel, sans effet sur les onglets 1 à 8. Prix hebdomadaires en dollars "
+               f"(Bloomberg, {span}) ; marché : MSCI World.")
 
     # ------------------------------------------------------------------ volatilité
     st.subheader("Volatilité : estimation du fichier et mesure sur l'historique")
@@ -84,27 +82,23 @@ def render(ctx: dict, show, recap):
     fig.update_layout(height=480, title="Volatilité annualisée par titre : estimée (fichier) contre mesurée (Bloomberg)",
                       legend=dict(orientation="h", y=-0.18))
     show(fig)
-    over = dv.assign(d=dv[E_] - dv[M_]).sort_values("d")
-    st.caption("Estimée : écart-type annualisé de trois rendements du fichier sur des périodes disjointes, rapproché de "
-               "la médiane de la sous-industrie (onglet 2). Mesurée : écart-type des rendements hebdomadaires × √52. "
-               "Au-dessus de la diagonale, le fichier sous-estime le risque du titre ; en dessous, il le surestime.")
+    st.caption("Estimée : 3 rendements disjoints du fichier, rapprochés de la médiane de la sous-industrie (onglet 2). "
+               "Mesurée : rendements hebdomadaires annualisés (√52). Au-dessus de la diagonale, risque sous-estimé "
+               "par le fichier.")
 
     # ------------------------------------------------------------------ bêtas
     st.subheader("Bêtas contre le MSCI World")
-    st.markdown(
-        "Le bêta mesure la sensibilité d'un titre aux mouvements du marché. Quand le MSCI World varie de 1 %, un titre "
-        "de bêta 1,40 varie en moyenne de 1,40 % dans le même sens : il amplifie les hausses comme les baisses de 40 %. "
-        "Le bêta ne mesure que le risque de marché : bêta = corrélation avec le marché × volatilité du titre ÷ "
-        "volatilité du marché. Un titre très volatil mais peu lié au marché peut donc avoir un bêta modéré.")
+    rho_m = tick.map(b["corr_mxwo"]).to_numpy(float)
     db = full[["ticker", "name", "country", "subindustry"]].assign(
         **{"Bêta mesuré": beta, "Bêta ajusté": tick.map(b["beta_usd_adj"]).to_numpy(float),
            "Bêta Bloomberg (indice local)": tick.map(b["beta_local_bbg_raw"]).to_numpy(float),
-           "Corrélation avec le MSCI World": tick.map(b["corr_mxwo"]).to_numpy(float), M_: vol_h.to_numpy(float),
+           "Corrélation avec le MSCI World": rho_m, "Part de variance expliquée par le marché (R²)": rho_m ** 2,
+           M_: vol_h.to_numpy(float), "Volatilité spécifique (%)": vol_h.to_numpy(float) * np.sqrt(1 - rho_m ** 2),
            E_: full["vol"].to_numpy(float)})
     med = db.groupby("subindustry")["Bêta mesuré"].median().sort_values()
     fig = go.Figure(go.Bar(x=med.values, y=med.index, orientation="h", marker_color=C_BLUE,
                            text=[f"{v:.2f}" for v in med.values], textposition="outside"))
-    fig.add_vline(x=1, line=dict(color=C_GREY, dash="dash"), annotation_text="Marché (bêta 1)")
+    fig.add_vline(x=1, line=dict(color=C_GREY, dash="dash"), annotation_text="Marché (bêta 1)", annotation_position="bottom right")
     fig.update_layout(template=TEMPLATE, height=max(420, 24 * len(med) + 120), xaxis_title="Bêta mesuré médian",
                       title="Bêta médian par sous-industrie")
     show(fig)
@@ -113,10 +107,9 @@ def render(ctx: dict, show, recap):
                                         "subindustry": "Sous-industrie"})
                      .sort_values("Bêta mesuré", ascending=False).style.format(precision=2),
                      hide_index=True, width="stretch", height=420)
-        st.caption("Bêta mesuré : pente de la régression des rendements hebdomadaires en dollars du titre sur ceux du "
-                   "MSCI World. Ajusté : 0,67 × mesuré + 0,33 (méthode de Blume, utilisée par Bloomberg), plus adapté "
-                   "à une prévision car les bêtas extrêmes se rapprochent de 1 avec le temps. Bêta Bloomberg par "
-                   "défaut : mesuré contre l'indice local du titre, non comparable d'un pays à l'autre.")
+        st.caption("Bêta mesuré : régression des rendements hebdomadaires en dollars sur le MSCI World. Ajusté : "
+                   "0,67 × mesuré + 0,33 (Blume). Bêta Bloomberg : contre l'indice local, non comparable entre pays. "
+                   "Volatilité spécifique : écart-type annualisé des résidus de la régression, σ × √(1 − R²).")
         c1, c2 = st.columns(2)
         c1.download_button("Télécharger les bêtas (CSV)", betas.to_csv(index=False).encode(), "betas_bloomberg.csv",
                            "text/csv")
@@ -131,21 +124,16 @@ def render(ctx: dict, show, recap):
         "Paire de titres": ["Même sous-industrie", "Même secteur, autre sous-industrie", "Secteurs différents"],
         "Hypothèse des onglets 7 et 8": list(rho), "Mesurée (Bloomberg)": [m for m, _ in blk],
         "Nombre de paires": [n for _, n in blk]}).style.format(precision=2), hide_index=True, width="stretch")
-    st.caption("Corrélation moyenne des rendements hebdomadaires sur chaque groupe de paires. Les niveaux supposés sont "
-               "plus élevés que les niveaux mesurés : c'est une marge de prudence, les corrélations augmentant en "
-               "marché baissier.")
+    st.caption("Moyenne des corrélations de rendements hebdomadaires par groupe de paires. Hypothèse supérieure à la "
+               "mesure : marge de prudence assumée (onglet 7).")
 
     # ------------------------------------------------------------------ portefeuilles
     st.subheader("Portefeuilles reconstruits avec les bêtas")
-    st.markdown("Si l'historique avait été disponible dès le départ, le risque aurait pu être modélisé avec un "
-                "**modèle à un facteur** : chaque titre est exposé au marché selon son bêta, le reste de son risque lui "
-                "est propre.")
-    st.latex(r"\Sigma = \sigma_m^2\,\beta\beta^\top + D, \qquad D_{ii} = \sigma_i^2 - \beta_i^2\sigma_m^2")
-    st.markdown(f"σ_m = {sig_m:.1%} (volatilité mesurée du MSCI World), σ_i = volatilité mesurée du titre, β = bêta "
-                "mesuré. Le rendement attendu garde la même formule, avec la volatilité mesurée dans l'alpha "
-                "(μ = prime de risque + IC × σ × score standardisé). La sélection est inchangée : 30 places réparties "
-                "par sous-industrie, score supérieur à la médiane, filtre ESG, plafond de 5 %. Seuls les paramètres de "
-                "risque changent.")
+    st.latex(r"\Sigma = \sigma_m^2\,\beta\beta^\top + D, \qquad D_{ii} = \sigma_{\varepsilon,i}^2 = \sigma_i^2 - "
+             r"\beta_i^2\sigma_m^2")
+    st.caption(f"Modèle de marché à un facteur (Sharpe, 1963). σ_m = {sig_m:.1%} (MSCI World) ; σ_i, β_i et risque "
+               "spécifique σ_ε mesurés sur l'historique. Rendement attendu : même formule, volatilité mesurée dans "
+               "l'alpha. Sélection inchangée : quotas par sous-industrie, score > médiane, filtre ESG, plafond de 5 %.")
     vol_dec = vol_h.to_numpy(float) / 100
     S1 = sig_m ** 2 * np.outer(beta, beta) + np.diag(np.maximum(vol_dec ** 2 - beta ** 2 * sig_m ** 2, 1e-8))
     S_emp = np.cov(R, rowvar=False) * 52
@@ -175,25 +163,40 @@ def render(ctx: dict, show, recap):
                      "Bêta mesuré": float(wv @ beta)})
     tab = pd.DataFrame(rows).set_index("Portefeuille")
     st.dataframe(tab.style.format(precision=2).format({"Lignes": "{:.0f}"}), width="stretch")
-    st.caption("Tous les portefeuilles sont évalués avec le même modèle (rendements attendus avec la volatilité mesurée, "
-               "covariance à un facteur) pour être comparables. Volatilité mesurée : covariance historique complète "
-               "des 104 semaines, sans modèle. Limite du modèle à un facteur : il ne capte que le lien commun au "
-               "marché et sous-estime les co-mouvements propres à une sous-industrie ; les quotas par sous-industrie "
-               "limitent cet effet.")
+    st.caption("Tous les portefeuilles évalués avec le même modèle. Volatilité mesurée : covariance historique complète, "
+               "sans modèle. Limite : le modèle à un facteur ignore les co-mouvements propres à une sous-industrie, "
+               "effet atténué par les quotas.")
 
-    pick = st.radio("Comparer les poids", list(var), horizontal=True, key="bbg_pick")
+    pick = st.radio("Portefeuille", list(var), horizontal=True, key="bbg_pick")
     lbl = pick[0].lower() + pick[1:]
-    a_, c_ = W[f"Portefeuille {lbl} (onglet 8)"], W[f"Portefeuille {lbl} (bêtas)"]
-    keep = (a_ > 1e-6) | (c_ > 1e-6)
-    cmp_ = pd.DataFrame({"ticker": tick[keep], "Onglet 8": a_[keep] * 100, "Avec les bêtas": c_[keep] * 100})
-    cmp_ = cmp_.sort_values(["Onglet 8", "Avec les bêtas"])
-    fig = go.Figure([go.Bar(y=cmp_["ticker"], x=cmp_["Onglet 8"], name="Onglet 8 (hypothèses du fichier)",
-                            orientation="h", marker_color=C_LIGHT),
-                     go.Bar(y=cmp_["ticker"], x=cmp_["Avec les bêtas"], name="Avec les bêtas (historique Bloomberg)",
-                            orientation="h", marker_color=C_NAVY)])
-    fig.update_layout(barmode="group", template=TEMPLATE, height=max(500, 22 * len(cmp_) + 140), xaxis_title="Poids (%)",
-                      title=f"Poids du portefeuille {lbl}", legend=dict(orientation="h", y=-0.12))
+    a_, c_ = W[f"Portefeuille {lbl} (onglet 8)"] * 100, W[f"Portefeuille {lbl} (bêtas)"] * 100
+    dw = pd.DataFrame({"ticker": tick, "name": full["name"], "avant": a_, "apres": c_, "delta": c_ - a_})
+    held = dw[(dw["avant"] > 1e-4) | (dw["apres"] > 1e-4)]
+    chg = held[held["delta"].abs() >= 0.1].sort_values("delta")
+    same = held[held["delta"].abs() < 0.1]
+    statut = np.where(chg["avant"] < 1e-4, "entrée", np.where(chg["apres"] < 1e-4, "sortie", ""))
+    txt = [f"{a:.1f} → {c:.1f} %" + (f" ({s_})" if s_ else "") for a, c, s_ in zip(chg["avant"], chg["apres"], statut)]
+    up = (chg["delta"] > 0).to_numpy()
+    fig = go.Figure()
+    for m_, nm_, col_ in ((up, "Poids en hausse", C_TEAL), (~up, "Poids en baisse", C_RED)):
+        fig.add_trace(go.Bar(
+            y=chg["ticker"][m_], x=chg["delta"][m_], orientation="h", name=nm_, marker_color=col_,
+            text=[t for t, k_ in zip(txt, m_) if k_], textposition="outside", cliponaxis=False,
+            customdata=np.c_[chg["name"][m_], chg["avant"][m_], chg["apres"][m_]],
+            hovertemplate="<b>%{y}</b> %{customdata[0]}<br>Onglet 8 : %{customdata[1]:.1f} %<br>"
+                          "Avec les bêtas : %{customdata[2]:.1f} %<br>Variation : %{x:+.1f} pt<extra></extra>"))
+    span_x = float(chg["delta"].abs().max()) if len(chg) else 1.0
+    fig.add_vline(x=0, line=dict(color=C_GREY, width=1))
+    fig.update_layout(template=TEMPLATE, barmode="relative", bargap=0.35, height=max(320, 30 * len(chg) + 150),
+                      title=f"Portefeuille {lbl} : lignes dont le poids change avec les bêtas",
+                      xaxis=dict(title="Variation de poids (points de %)", range=[-span_x * 1.75, span_x * 1.75],
+                                 zeroline=False),
+                      yaxis=dict(categoryorder="array", categoryarray=chg["ticker"].tolist()),
+                      legend=dict(orientation="h", y=-0.18))
     show(fig)
+    st.caption(f"{len(chg)} lignes modifiées sur {len(held)} détenues dans l'une ou l'autre version. "
+               f"{len(same)} lignes inchangées (écart < 0,1 pt), non représentées : "
+               f"{', '.join(same.sort_values('apres', ascending=False)['ticker'])}.")
 
     pts = [f"<b>Volatilité</b> : médiane estimée {dv[E_].median():.1f} % contre {dv[M_].median():.1f} % mesurée ; "
            f"corrélation des rangs {sp:.2f}. L'estimation à partir de trois rendements donne le bon niveau de risque"
@@ -211,16 +214,16 @@ def render(ctx: dict, show, recap):
                    + (f" ; sortent {', '.join(sorted(A - C))}" if A - C else "")
                    + (f" ; entrent {', '.join(sorted(C - A))} ({c_[tick.isin(C - A)].sum():.0%} du portefeuille)"
                       if C - A else "")
-                   + f". Sharpe ex ante {tc_['Sharpe ex ante']:.2f} contre {ta_['Sharpe ex ante']:.2f} pour le "
-                   "portefeuille de l'onglet 8 évalué avec le même modèle (écart attendu, la variante étant optimisée "
-                   f"pour ce modèle) ; bêta {tc_['Bêta mesuré']:.2f} contre {ta_['Bêta mesuré']:.2f} "
+                   + f". Sharpe ex ante {tc_['Sharpe ex ante']:.2f} contre {ta_['Sharpe ex ante']:.2f} pour la version "
+                   "de l'onglet 8 sous le même modèle (variante optimisée sur ce modèle) ; bêta "
+                   f"{tc_['Bêta mesuré']:.2f} contre {ta_['Bêta mesuré']:.2f} "
                    f"(équipondéré {e_b:.2f}).")
-    pts.append("Le cœur de la sélection tient sur données réelles : l'historique change surtout les poids et ajoute "
-               "quelques lignes, sans remettre en cause les titres retenus dans l'onglet 8." if all(
+    pts.append("Le cœur de la sélection tient sur données réelles : l'historique modifie surtout les poids et ajoute "
+               "quelques lignes." if all(
                    len(set(tick[W[f'Portefeuille {n[0].lower() + n[1:]} (onglet 8)'] > 1e-6])
                        & set(tick[var[n] > 1e-6])) >= 0.75 * (W[f'Portefeuille {n[0].lower() + n[1:]} (onglet 8)']
                                                                > 1e-6).sum() for n in var)
                else "L'historique modifie sensiblement la composition : les hypothèses du fichier pèsent sur la sélection.")
     recap(pts, ["Bêta mesuré = cov(r_i, r_m) / var(r_m) sur les rendements hebdomadaires en dollars.",
-                "Modèle à un facteur : Σ = σ_m² ββᵀ + D, D diagonale des risques propres (Sharpe, 1963).",
+                "Modèle à un facteur : Σ = σ_m² ββᵀ + D, D diagonale des variances spécifiques (Sharpe, 1963).",
                 "Pondération : maximisation du Sharpe ex ante, 0 ≤ w ≤ 5 %, Σw = 1, sur les 30 titres présélectionnés."])

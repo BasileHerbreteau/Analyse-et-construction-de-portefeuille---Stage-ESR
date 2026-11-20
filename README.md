@@ -87,8 +87,8 @@ de Bloomberg (15/11/2024 – 13/11/2026), avec le MSCI World comme marché.
 
 * **Volatilité** : médiane estimée 43,7 % contre 41,8 % mesurée ; corrélation de rang 0,66. L'estimation sur trois
   rendements donne le bon niveau de risque mais classe moins bien les titres entre eux.
-* **Bêtas** : pente de la régression des rendements hebdomadaires du titre sur ceux du MSCI World (bêta de 1,40 : le
-  titre varie en moyenne de 1,40 % quand le marché varie de 1 %), avec la version ajustée de Blume (0,67 × bêta + 0,33).
+* **Bêtas** : régression des rendements hebdomadaires sur le MSCI World, version ajustée de Blume (0,67 × bêta + 0,33) ;
+  volatilité spécifique mesurée par l'écart-type des résidus. Le marché explique 19 % de la variance du titre médian.
 * **Corrélations** : mesurées 0,43 / 0,22 / 0,11 contre 0,60 / 0,40 / 0,25 supposées : l'hypothèse est prudente.
 * **Portefeuilles reconstruits** avec un modèle à un facteur (Σ = σ²ₘββᵀ + D) et la volatilité mesurée, sélection
   inchangée :
