@@ -88,11 +88,13 @@ def lab(c: str) -> str:
     return du.LABELS.get(c, c)
 
 
-def recap(points: list[str], methode: list[str] | None = None):
-    """Encadré de fin d'onglet : constats chiffrés, et méthode de calcul quand elle est spécifique."""
+def recap(points: list[str], methode: list[str] | str | None = None):
+    """Encadré de fin d'onglet : constats chiffrés, et méthode de calcul quand elle est spécifique (liste ou texte)."""
     html = "<div class='recap'><b class='t'>Points clés</b><ul style='margin:0'>" + \
            "".join(f"<li>{x}</li>" for x in points) + "</ul>"
-    if methode:
+    if isinstance(methode, str):
+        html += f"<b class='t' style='margin-top:.6rem'>Méthode</b><p style='margin:0'>{methode}</p>"
+    elif methode:
         html += "<b class='t' style='margin-top:.6rem'>Méthode</b><ul style='margin:0'>" + \
                 "".join(f"<li>{x}</li>" for x in methode) + "</ul>"
     st.markdown(html + "</div>", unsafe_allow_html=True)

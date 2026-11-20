@@ -73,6 +73,38 @@ def _fmt_pct(x, d=1):
     return f"{x * 100:,.{d}f} %".replace(",", " ").replace(".", ",")
 
 
+# sens favorable de chaque indicateur : +1 plus haut = mieux, −1 plus bas = mieux
+SENS = {"Performance totale": 1, "Performance annualisée": 1, "Volatilité annualisée": -1, "Ratio de Sharpe": 1,
+        "Perte maximale (max drawdown)": 1, "Ratio de Calmar": 1, "Jours de hausse": 1, "Pire jour": 1,
+        "Meilleur jour": 1}
+KEY_ROWS = ["Performance totale", "Volatilité annualisée", "Ratio de Sharpe", "Perte maximale (max drawdown)"]
+REF_CSS = "background-color: #F2F4F7; color: #4A5A70"
+
+
+def _comp_table(comp: pd.DataFrame, rows: list[str]):
+    """Valeur et écart avec l'équipondéré (1re colonne) ; vert favorable, rouge défavorable (même code que l'onglet 8)."""
+    num = comp.loc[rows]
+    ref = num.iloc[:, 0]
+    txt = num.copy().astype(object)
+    css = pd.DataFrame("", index=num.index, columns=num.columns)
+    for r in num.index:
+        ratio = r.startswith("Ratio")
+        f = (lambda x: f"{x:.2f}".replace(".", ",")) if ratio else _fmt_pct
+        txt.loc[r, num.columns[0]] = f(ref[r])
+        css.loc[r, num.columns[0]] = REF_CSS
+        scale = 0.5 * max(num.loc[r].abs().max(), 1e-9)
+        for c in num.columns[1:]:
+            v, d = num.loc[r, c], num.loc[r, c] - ref[r]
+            gap = f"{d:+.2f}".replace(".", ",") if ratio else f"{d * 100:+.1f} pt".replace(".", ",")
+            txt.loc[r, c] = f"{f(v)}   ({gap})"
+            inten = min(1.0, abs(d) / scale)
+            if inten >= 0.05:
+                rgb = "0, 161, 154" if SENS.get(r, 0) * d > 0 else "214, 69, 61"
+                css.loc[r, c] = (f"background-color: rgba({rgb}, {0.12 + 0.55 * inten:.2f});"
+                                 + (" font-weight: 700" if inten > 0.5 else ""))
+    return txt.style.apply(lambda _: css, axis=None)
+
+
 def _family(t: str) -> str:
     if t in ETF:
         return "ETF"
@@ -171,17 +203,17 @@ performance totale réalisée, avec <b>20 % maximum par sous-jacent</b> et <b>10
                       legend=dict(orientation="h", y=-0.12), margin=dict(t=70))
     show(fig)
 
-    comp = pd.DataFrame({NAMES[kk]: v for kk, v in mets.items()})
-    disp = comp.copy().astype(object)
-    for r in comp.index:
-        disp.loc[r] = [f"{x:.2f}".replace(".", ",") if r.startswith("Ratio") else _fmt_pct(x) for x in comp.loc[r]]
+    comp = pd.DataFrame({NAMES[kk]: mets[kk] for kk in ["ew", "static", "opt"]})   # équipondéré = référence
     turnover = segs["opt"]["Rotation"].sum()
-    disp.loc["Rotation cumulée (achats + ventes)"] = [
-        _fmt_pct(segs[kk]["Rotation"].sum(), 0) if segs[kk]["Rotation"].notna().any() else "-" for kk in mets]
-    st.dataframe(disp, width="stretch")
-    st.caption("Statique optimal : meilleur portefeuille sans réallocation, mêmes contraintes. Volatilité : rendements "
-               "des jours de cotation, annualisés (√252). Sharpe : taux sans risque = €STR moyen de la période, soit "
-               f"{_fmt_pct(rf, 2)} en taux annuel ([source]({al.ESTR_SOURCE})). "
+    st.markdown("**Indicateurs clés**")
+    st.dataframe(_comp_table(comp, KEY_ROWS), width="stretch")
+    st.markdown("**Détail**")
+    st.dataframe(_comp_table(comp, [r for r in comp.index if r not in KEY_ROWS]), width="stretch")
+    st.caption("Entre parenthèses : écart avec l'équipondéré. Vert : écart favorable ; rouge : défavorable ; intensité "
+               "proportionnelle à l'ampleur de l'écart. Statique optimal : meilleur portefeuille sans réallocation, "
+               f"mêmes contraintes. Rotation cumulée du dynamique (achats + ventes) : {_fmt_pct(turnover, 0)}. "
+               "Volatilité : rendements des jours de cotation, annualisés (√252). Sharpe : taux sans risque = €STR "
+               f"moyen de la période, soit {_fmt_pct(rf, 2)} en taux annuel ([source]({al.ESTR_SOURCE})). "
                + (f"Frais de {cost:.0f} pb déduits pour le portefeuille dynamique." if cost else
                   "Performances brutes de frais."))
 
@@ -229,12 +261,6 @@ performance totale réalisée, avec <b>20 % maximum par sous-jacent</b> et <b>10
                           title="Contribution à la performance (points de VL)", xaxis_title="Points", margin=dict(l=10))
         fig.update_yaxes(tickmode="array", tickvals=list(contrib.index), tickfont=dict(size=10))
         show(fig, c2)
-    per_disp = per.copy()
-    for c_ in ["Portefeuille", "Équipondéré (29)"]:
-        per_disp[c_] = per_disp[c_].map(lambda x: f"{x * 100:+.1f} %".replace(".", ","))
-    for c_ in ["Début", "Fin"]:
-        per_disp[c_] = pd.to_datetime(per_disp[c_]).dt.strftime("%d/%m/%Y")
-    st.dataframe(per_disp, hide_index=True, width="stretch", height=36 * (len(per_disp) + 1) + 4)
 
     # ------------------------------------------------------------------ Valeur des réallocations
     st.subheader("Apport des réallocations")
@@ -280,15 +306,13 @@ performance totale réalisée, avec <b>20 % maximum par sous-jacent</b> et <b>10
         f"<b>Frais</b> : à 10 pb du montant échangé, la valeur finale baisse de "
         f"{_fmt_pct(1 - (1 + perf10) / (1 + perf0))} ; performance de {_fmt_pct(perf10, 0)} au lieu de "
         f"{_fmt_pct(perf0, 0)}.",
-    ], methode=[
-        "Entre deux dates d'allocation, les positions sont conservées (les poids évoluent avec les prix) ; le plafond "
-        "de 20 % s'applique à chaque date d'allocation.",
-        "Sur une période, la valeur finale est linéaire dans les poids : l'optimum place 20 % sur les 5 sous-jacents "
-        "qui progressent le plus.",
-        "Dates choisies par programmation dynamique sur (date, nombre de réallocations) : optimum global.",
-        "Réallocation possible les jours où toutes les places sont ouvertes ; résultat identique avec tous les jours "
-        "calendaires.",
-    ])
+    ], methode=(
+        "Entre deux dates d'allocation, les positions sont conservées et les poids évoluent avec les prix ; le plafond "
+        "de 20 % s'applique à chaque date d'allocation. Sur une période, la valeur finale est linéaire dans les poids : "
+        "l'optimum place 20 % sur les 5 sous-jacents qui progressent le plus. Les dates sont choisies par programmation "
+        "dynamique sur (date, nombre de réallocations), ce qui donne l'optimum global. Réallocation possible les jours "
+        "où toutes les places sont ouvertes ; le résultat est identique avec tous les jours calendaires."
+    ))
     drift = al.max_drift(px, sol.weights)
     strict_txt = ""
     if STRICT.exists():
@@ -297,9 +321,6 @@ performance totale réalisée, avec <b>20 % maximum par sous-jacent</b> et <b>10
                       f"{_fmt_pct(float(np.prod(1 + sv['perf']) - 1), 0)} (mêmes dates).")
     st.markdown(f"""
 **Limites**
-- Optimum **ex post** : il suppose les cours de la période connus à l'avance. C'est la borne haute permise par les
-  contraintes, pas une stratégie investissable ; une mise en œuvre réelle reposerait sur des signaux et un backtest
-  hors échantillon.
 - Les poids évoluent entre deux réallocations : un sous-jacent peut dépasser 20 % en cours de période (au plus
   {_fmt_pct(drift[0])}, {drift[1]} le {drift[2]:%d/%m/%Y}).{strict_txt}
 - Indices de prix (dividendes non inclus) ; sous-jacents en dollars agrégés sans conversion de change.
