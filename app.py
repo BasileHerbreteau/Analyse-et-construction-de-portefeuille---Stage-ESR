@@ -5,6 +5,7 @@ Lancer en local :  streamlit run app.py
 from __future__ import annotations
 
 import base64
+import hashlib
 import importlib
 from pathlib import Path
 
@@ -107,6 +108,23 @@ def ols_line(fig, x: pd.Series, y: pd.Series, name: str = "Régression linéaire
     fig.add_trace(go.Scatter(x=xs, y=f_["slope"] * xs + f_["intercept"], mode="lines", name=name,
                              line=dict(color=color, dash="dash", width=1.8)))
     return f_
+
+
+# Les caches de Streamlit survivent à une mise à jour du dépôt sur Streamlit Community Cloud et ne voient pas les
+# changements de fichiers de données : on les vide dès que le contenu des données ou du code change.
+_ROOT = Path(__file__).parent
+_SIG = hashlib.md5(b"".join(f_.read_bytes() for f_ in sorted([*(_ROOT / "data").glob("*"), *_ROOT.glob("*.py")])
+                            if f_.is_file())).hexdigest()
+
+
+@st.cache_resource
+def _cache_state() -> dict:
+    return {"sig": None}
+
+
+if _cache_state()["sig"] != _SIG:
+    st.cache_data.clear()
+    _cache_state()["sig"] = _SIG
 
 
 @st.cache_data
