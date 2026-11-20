@@ -68,7 +68,8 @@ Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypoth�
 * Aucun backtest, faute d'historique des données : le pouvoir prédictif du score n'est pas démontré.
 
 **Portefeuille et ESG**
-* La maximisation du Sharpe amplifie les erreurs d'estimation ; le plafond de 5 % et les quotas les limitent.
+* L'optimisation au Sharpe surpondère les titres dont le rendement est surestimé ou le risque sous-estimé (Michaud,
+  1989) : la plupart des lignes atteignent le plafond de 5 %, qui sert de garde-fou.
 * Le portefeuille peut pencher vers des titres plus sensibles au marché ou d'un même style (croissance) : une partie
   de sa performance viendrait alors de ces paris plutôt que de la sélection des titres.
 * Portefeuille construit une seule fois : ni rééquilibrage dans le temps, ni frais de transaction.
