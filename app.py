@@ -1252,7 +1252,6 @@ with tabs[7]:
     vals.index = [lab(c) for c in vals.index]
     c2.dataframe(vals.style.format("{:.2f}"), width="stretch", height=500)
 
-    _cap_pts = []
     if HAS_CAP:
         st.subheader("Capitalisation boursière")
         st.caption("Information complémentaire, non utilisée dans la construction. Capitalisations en milliards de "
@@ -1299,59 +1298,26 @@ with tabs[7]:
                                                              "Poids avec ESG (%)": "{:.1f}",
                                                              "Poids capi (%)": "{:.3f}"}),
                      hide_index=True, width="stretch")
-        st.caption("Poids capi : poids de la ligne dans le portefeuille pondéré par la capitalisation. Une ligne à 5 % "
-                   "dans une société de moins de 10 Md$ représente plus de 100 fois son poids de marché : en gestion "
-                   "réelle, ce poids serait revu à la baisse (liquidité, part du capital détenue, écart au benchmark).")
-
-        sm_ = full[full["mcap"] < seuil].sort_values("mcap")
-        sm_w = {c_.replace("Portefeuille ", ""): w_.reindex(full.index).fillna(0.0).loc[sm_.index]
-                for c_, w_ in [(PF_COLS[0], w_s)] + ([(PF_COLS[1], w_e)] if len(PF_COLS) > 1 else [])}
-        sm_txt = " ; ".join(f"{k_} : " + (", ".join(f"{full.at[i_, 'ticker']} ({full.at[i_, 'mcap']:.1f} Md$, "
-                                                     f"{v_ * 100:.1f} %)" for i_, v_ in w_[w_ > 0].items()) or "aucune")
-                            for k_, w_ in sm_w.items())
-        n_sm = sum(int((w_ > 0).sum()) for w_ in sm_w.values())
-        _cap_pts = [
-            f"<b>Taille des sociétés</b> : capitalisation médiane des lignes "
-            + " ; ".join(f"{c_.replace('Portefeuille ', '')} {cap_tab.loc[c_, 'Capitalisation médiane des lignes (Md$)']:.0f} Md$"
-                         for c_ in PF_COLS)
-            + f", contre {mc.median():.0f} Md$ pour l'univers : pas de biais systématique vers les petites valeurs. "
-              "Moyenne pondérée par les poids : "
-            + " ; ".join(f"{c_.replace('Portefeuille ', '')} {cap_tab.loc[c_, 'Capitalisation moyenne pondérée (Md$)']:.0f} Md$"
-                         for c_ in PF_COLS)
-            + f", contre {cap_tab.loc[CAPW_NAME, 'Capitalisation moyenne pondérée (Md$)']:.0f} Md$ pour le pondéré par la "
-              "capitalisation : nos portefeuilles sont beaucoup moins concentrés sur les méga-capitalisations.",
-            (f"<b>Petites capitalisations</b> (sous {seuil} Md$) : {sm_txt}. Leur poids de marché est inférieur à "
-             f"{np.ceil(W_CAP.loc[sm_.index].max() * 10000) / 100:.2f} % : en gestion réelle, ces lignes seraient "
-             "sans doute réduites (liquidité, part du capital détenue, écart au benchmark)." if n_sm else
-             f"<b>Petites capitalisations</b> : aucune ligne sous {seuil} Md$."),
-            f"<b>Pondéré par la capitalisation</b> : Sharpe ex ante {comp.loc['Sharpe ex ante', CAPW_NAME]:.2f} "
-            f"(équipondéré {ewc['Sharpe ex ante']:.2f}), volatilité {comp.loc['Volatilité estimée (%)', CAPW_NAME]:.1f} % ; "
-            f"les 4 premières lignes pèsent {W_CAP.nlargest(4).sum():.0%} (nombre effectif "
-            f"{comp.loc['Nb effectif (1/Σw²)', CAPW_NAME]:.1f}).",
-        ]
+        st.markdown("Une ligne à 5 % dans une société de moins de 10 Md$ représente plus de 100 fois son poids de "
+                    "marché : en gestion réelle, ce poids serait revu à la baisse (liquidité, part du capital détenue, "
+                    "écart au benchmark).")
 
     best = comp.loc["Sharpe ex ante", [comp.columns[0]] + PF_COLS].idxmax()
     recap([f"<b>Portefeuille {cur_label}</b> : {int(cur['Lignes'])} lignes, rendement attendu {cur['Rendement attendu (%)']:.1f} %, "
            f"volatilité {cur['Volatilité estimée (%)']:.1f} %, Sharpe ex ante {cur['Sharpe ex ante']:.2f} contre "
            f"{ewc['Sharpe ex ante']:.2f} pour l'équipondéré.",
-           (f"<b>Par rapport au portefeuille tangent</b> (Sharpe maximal sur les 99 titres, sans quotas) : Sharpe "
-            f"{r_tan / v_tan:.2f} ; le portefeuille {cur_label} en atteint {cur['Sharpe ex ante'] / (r_tan / v_tan):.0%}, "
-            f"en respectant les quotas de diversification." if w_tan is not None else ""),
            f"<b>Qualité</b> : score final moyen {cur['Score final moyen']:.2f} (équipondéré {ewc['Score final moyen']:.2f}) ; "
            f"{cur['Part passant la Rule of 40 (%)']:.0f} % des poids passent la Rule of 40 "
            f"(équipondéré {ewc['Part passant la Rule of 40 (%)']:.0f} %).",
            f"<b>Diversification</b> : {int(cur['Sous-industries'])} sous-industries ; poids maximal d'une sous-industrie "
            f"{cur['Poids max. d\'une sous-industrie (%)']:.0f} % ; technologie {cur['Part technologie (%)']:.0f} %.",
-           f"<b>Risque</b> : les 5 premières contributions représentent "
-           f"{Pw['Contribution au risque'].nlargest(5).sum():.0%} du risque pour {Pw['Poids'].nlargest(5).sum():.0%} des "
-           f"poids ; {int((Pw['Poids'] >= CAP - 1e-6).sum())} titres au plafond de 5 %.",
            (f"<b>Filtre ESG</b> : score ESG moyen {comp.loc['Score ESG moyen'].iloc[2]:.2f} contre "
             f"{comp.loc['Score ESG moyen'].iloc[1]:.2f} sans filtre, pour un Sharpe ex ante de "
             f"{comp.loc['Sharpe ex ante'].iloc[2]:.2f} contre {comp.loc['Sharpe ex ante'].iloc[1]:.2f} : le gain "
             f"extra-financier coûte {comp.loc['Sharpe ex ante'].iloc[1] - comp.loc['Sharpe ex ante'].iloc[2]:.2f} de "
             f"Sharpe" + (", et les deux portefeuilles restent nettement au-dessus de l'équipondéré."
                          if comp.loc["Sharpe ex ante", PF_COLS].min() > comp.loc["Sharpe ex ante"].iloc[0] + 0.1 else ".")
-            if len(PF_COLS) > 1 else f"Meilleur Sharpe ex ante : {best}.")] + _cap_pts,
+            if len(PF_COLS) > 1 else f"Meilleur Sharpe ex ante : {best}.")],
           [f"Quotas : {N_TOTAL} places réparties entre sous-industries au prorata de leur taille (plus forts restes) ; "
            "un titre n'est retenu que si son score dépasse la médiane de sa sous-industrie ; places non pourvues "
            "attribuées aux meilleurs scores restants.",
