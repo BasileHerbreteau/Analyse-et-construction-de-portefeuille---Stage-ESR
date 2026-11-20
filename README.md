@@ -11,7 +11,6 @@ L'onglet bonus **Historique Bloomberg** confronte les hypothèses de risque à d
 ### Partie 1 · Analyse de l'univers
 * Composition par sous-industrie et par pays.
 * Profil comparé des deux secteurs : performance, risque, valorisation, rentabilité, attentes des analystes.
-* Estimation de la volatilité à partir de trois périodes de rendement.
 * Visualisation de la relation rendement / volatilité et de la persistance des performances.
 * Analyse des multiples de valorisation (P/E, PEG) et de l'upside des analystes.
 
@@ -22,22 +21,18 @@ L'onglet bonus **Historique Bloomberg** confronte les hypothèses de risque à d
 * Comparaison avec la Rule of 40 : corrélations de rang, titres retenus par les deux critères, profil des sélections.
 
 ### Partie 3 · Portefeuille
-* Scores ESG Bloomberg et position de chaque titre par rapport à sa sous-industrie.
+* Filtre possible avec scores ESG Bloomberg et position de chaque titre par rapport à sa sous-industrie.
 * Rendement attendu ex ante combinant la prime de risque du titre et son score.
 * Frontière efficiente, Capital Market Line et portefeuille tangent, sensibilité aux hypothèses de corrélation.
 * Portefeuille final, avec ou sans filtre ESG, comparé à l'équipondéré : poids, contributions au risque, composition.
 
-## Méthode en bref
+## Méthodes
 
-* **Données** : les critères financiers viennent uniquement du fichier Excel. Les valeurs extrêmes sont écrêtées aux
-  quantiles 2 % / 98 %, sauf l'upside des analystes, conservé tel quel. Taux sans risque : T-bill américain 3 mois au
-  13/11/2026.
-* **Volatilité** : écart-type annualisé de trois rendements sur des périodes disjointes, rapproché de la médiane de la
-  sous-industrie pour réduire le bruit.
+* **Volatilité** : faute d'historique, écart-type annualisé de trois rendements sur des périodes disjointes, rapproché
+  de la médiane de la sous-industrie pour réduire le bruit.
 * **Corrélations** : faute d'historique, structure par blocs supposée (0,60 entre titres d'une même sous-industrie,
   0,40 au sein d'un secteur, 0,25 sinon). Une corrélation moyenne par groupe réduit l'erreur d'estimation (modèle à
-  corrélation constante, Ledoit et Wolf, 2003) ; les niveaux sont prudents car les corrélations montent en marché
-  baissier (Longin et Solnik, 2001). Sensibilité testée de 0,40 / 0,25 / 0,10 à 0,80 / 0,60 / 0,40.
+  corrélation constante, Ledoit et Wolf, 2003).
 * **Critère agrégé** : chaque facteur est comparé aux titres de la même sous-industrie, puis les quatre piliers sont
   moyennés à poids égal.
 * **Rendement attendu** : la prime de risque implicite donne le niveau ; le score ajoute un alpha proportionnel à la
@@ -46,8 +41,6 @@ L'onglet bonus **Historique Bloomberg** confronte les hypothèses de risque à d
   la médiane de leur sous-industrie, pondération qui maximise le ratio de Sharpe ex ante.
 * **Filtre ESG** : score ESG Bloomberg (0 à 10) ; seuls les titres mieux notés que la médiane de leur sous-industrie
   sont éligibles, avec repêchage des bons scores pour garder la diversification.
-* **Capitalisations** : Bloomberg, clôture du 13/11/2026 en dollars. Elles servent seulement au portefeuille de
-  référence pondéré par la capitalisation et à la comparaison des tailles, pas à la construction.
 
 ## Résultats
 
@@ -57,7 +50,7 @@ L'onglet bonus **Historique Bloomberg** confronte les hypothèses de risque à d
 | Volatilité estimée | 29,3 % | 24,1 % | 21,7 % | 30,6 % |
 | Sharpe ex ante | 0,40 | 0,78 | 0,65 | 0,42 |
 | Score ESG moyen (Bloomberg) | 4,81 | 4,66 | 5,44 | 4,90 |
-| Capitalisation médiane des lignes | 39 Md$ | 142 Md$ | 95 Md$ | 39 Md$ |
+| Capitalisation moyenne des lignes | 273 Md$ | 581 Md$ | 561 Md$ | 273 Md$ |
 
 Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes.
 
@@ -90,22 +83,12 @@ de Bloomberg (15/11/2024 – 13/11/2026), avec le MSCI World comme marché.
 * **Bêtas** : régression des rendements hebdomadaires sur le MSCI World, version ajustée de Blume (0,67 × bêta + 0,33) ;
   volatilité spécifique mesurée par l'écart-type des résidus. Le marché explique 19 % de la variance du titre médian.
 * **Corrélations** : mesurées 0,43 / 0,22 / 0,11 contre 0,60 / 0,40 / 0,25 supposées : l'hypothèse est prudente.
-* **Portefeuilles reconstruits** avec un modèle à un facteur (Σ = σ²ₘββᵀ + D) et la volatilité mesurée, sélection
-  inchangée :
-
-| Modèle à un facteur | Équipondéré (99) | Sans ESG, onglet 8 | Sans ESG, bêtas | Avec ESG, onglet 8 | Avec ESG, bêtas |
-| --- | --- | --- | --- | --- | --- |
-| Lignes | 99 | 21 | 23 | 21 | 27 |
-| Sharpe ex ante | 0,58 | 0,83 | 0,88 | 0,71 | 0,79 |
-| Volatilité mesurée (2 ans) | 22,4 % | 25,7 % | 24,0 % | 21,2 % | 19,4 % |
-| Bêta mesuré | 1,43 | 1,59 | 1,51 | 1,35 | 1,19 |
-
-19 des 21 lignes de chaque portefeuille sont conservées : la sélection tient sur données réelles, l'historique change
-surtout les poids et ajoute quelques lignes.
+* **Portefeuilles reconstruits** avec un modèle à un facteur (Σ = σ²ₘββᵀ + D) et la volatilité mesurée : la sélection
+  change pour quelques titres (19 des 21 lignes sont conservées), mais le cœur du portefeuille reste le même.
 
 ## Partie 3 · Track record
 
-Exercice **indépendant** des parties 1 à 3, sur un **autre jeu de données** (fichier *Exercice allocation 261113*) :
+Exercice **indépendant** des autres onglets, sur un **autre jeu de données** (fichier *Exercice allocation 261113*) :
 cours quotidiens de 29 sous-jacents (indices sectoriels STOXX Europe 600 et EURO STOXX, Russell 2000, S&P
 Communication Services, trois ETF). Il ne réutilise ni l'univers d'actions, ni le score, ni les filtres de l'application.
 
@@ -116,8 +99,6 @@ Communication Services, trois ETF). Il ne réutilise ni l'univers d'actions, ni 
   linéaire en poids et son maximum est atteint avec 20 % sur les 5 sous-jacents qui progressent le plus. Les dates de
   réallocation sont choisies par programmation dynamique, ce qui donne l'optimum global (contrôlé par recherche
   exhaustive et tirages aléatoires).
-* **Présentation** : comparaison avec l'équipondéré et le meilleur portefeuille sans réallocation, périodes de
-  détention, contributions par sous-jacent, gain apporté par chaque réallocation, sensibilité aux frais de transaction.
 * **Classeur Excel** `resultats/track_record_allocation_dynamique.xlsx`, téléchargeable depuis l'onglet : track
   record recalculé par formules à partir des dates et des poids, modifiables.
 
@@ -127,14 +108,11 @@ Communication Services, trois ETF). Il ne réutilise ni l'univers d'actions, ni 
 | Volatilité annualisée | 16,4 % | 16,6 % | 11,6 % |
 | Perte maximale | -5,2 % | -7,2 % | -8,8 % |
 
-Optimum **ex post** (cours de la période connus à l'avance) : borne haute permise par les contraintes, pas une
-stratégie investissable. Indices de prix en devise de cotation, performances brutes de frais (10 pb par réallocation
-ramènent la performance à 183,7 %). Taux sans risque du ratio de Sharpe : €STR moyen de la période, soit 2,11 % en
-taux annuel.
-
 ## Ouvrir l'application
 
-Depuis une copie du dépôt (Python 3.10 ou plus récent) :
+En ligne, sans installation : https://analyse-et-construction-de-portefeuille---stage-esr.streamlit.app/
+
+En local, depuis une copie du dépôt (Python 3.10 ou plus récent) :
 
 ```bash
 git clone https://github.com/BasileHerbreteau/Analyse-et-construction-de-portefeuille---Stage-ESR.git
@@ -143,10 +121,10 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-L'application s'ouvre dans le navigateur à l'adresse http://localhost:8501. Le classeur Excel du bonus s'ouvre aussi
-directement depuis le dossier `resultats/`.
+L'application s'ouvre alors à l'adresse http://localhost:8501 de la machine qui l'a lancée. Le classeur Excel de la partie 3
+s'ouvre aussi directement depuis le dossier `resultats/`.
 
 Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations, historique Bloomberg), `analytics.py`
 (volatilité, frontière), `scoring.py` (z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection,
-optimisation). Bonus : `tab_bloomberg.py` (historique Bloomberg, modèle à un facteur), `allocation.py` (optimisation et
+optimisation). Bonus : `tab_bloomberg.py` (historique Bloomberg, modèle à un facteur). Partie 3 : `allocation.py` (optimisation et
 track record), `tab_allocation.py` (onglet), `export_allocation_excel.py` (classeur Excel).
