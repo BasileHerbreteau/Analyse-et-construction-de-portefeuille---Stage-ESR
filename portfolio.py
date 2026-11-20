@@ -105,12 +105,14 @@ def max_sharpe(mu: np.ndarray, cov: np.ndarray, cap: float) -> np.ndarray:
     best[best < 1e-5] = 0
     best = best / best.sum()
     for _ in range(50):  # projection exacte sur la contrainte de plafond après arrondis
-        over = best > cap
+        over = best > cap + 1e-12
         if not over.any():
             break
         excess = (best[over] - cap).sum()
         best[over] = cap
-        free = best < cap
+        free = (best > 0) & (best < cap)
+        if not free.any():      # toutes les lignes au plafond : l'excédent n'est qu'un résidu d'arrondi
+            break
         best[free] += excess * best[free] / best[free].sum()
     return best
 

@@ -21,7 +21,7 @@ Un onglet **Bonus · Track record**, indépendant, traite un exercice d'allocati
 * Comparaison avec la Rule of 40 : corrélations de rang, titres retenus par les deux critères, profil des sélections.
 
 ### Partie 3 · Portefeuille
-* Scores ESG S&P Global et position de chaque titre par rapport à sa sous-industrie.
+* Scores ESG Bloomberg et position de chaque titre par rapport à sa sous-industrie.
 * Rendement attendu ex ante combinant la prime de risque du titre et son score.
 * Frontière efficiente, Capital Market Line et portefeuille tangent, sensibilité aux hypothèses de corrélation.
 * Portefeuille final, avec ou sans filtre ESG, comparé à l'équipondéré : poids, contributions au risque, composition.
@@ -41,27 +41,35 @@ Un onglet **Bonus · Track record**, indépendant, traite un exercice d'allocati
   volatilité du titre (règle de Grinold).
 * **Portefeuille** : 30 places réparties entre sous-industries selon leur taille, titres retenus seulement s'ils battent
   la médiane de leur sous-industrie, pondération qui maximise le ratio de Sharpe ex ante.
-* **Filtre ESG** : seuls les titres mieux notés que la médiane de leur sous-industrie sont éligibles, avec repêchage
-  des bons scores pour garder la diversification.
-* **Capitalisations** : relevées sur companiesmarketcap.com (clôture du 13/11/2026 pour 38 titres, cours du 10 au
-  18/11 pour la plupart des autres). Elles servent seulement au portefeuille de référence pondéré par la
-  capitalisation et à la comparaison des tailles, pas à la construction.
+* **Filtre ESG** : score ESG Bloomberg (0 à 10) ; seuls les titres mieux notés que la médiane de leur sous-industrie
+  sont éligibles, avec repêchage des bons scores pour garder la diversification.
+* **Capitalisations** : Bloomberg, clôture du 13/11/2026 en dollars. Elles servent seulement au portefeuille de
+  référence pondéré par la capitalisation et à la comparaison des tailles, pas à la construction.
+* **Contrôle sur l'historique** : 104 semaines de prix Bloomberg en dollars, jusqu'au 13/11/2026, mesurent après coup
+  la volatilité, les corrélations et le bêta (contre le MSCI World) des portefeuilles, sans modifier leur construction.
 
 ## Résultats
 
 | | Équipondéré (99) | Sans ESG | Avec filtre ESG | Pondéré par la capitalisation (99) |
 | --- | --- | --- | --- | --- |
-| Rendement attendu | 11,6 % | 19,0 % | 16,8 % | 12,9 % |
-| Volatilité estimée | 32,8 % | 27,0 % | 29,3 % | 33,5 % |
-| Sharpe ex ante | 0,36 | 0,71 | 0,57 | 0,39 |
-| Capitalisation médiane des lignes | 40 Md$ | 145 Md$ | 42 Md$ | 40 Md$ |
+| Rendement attendu | 11,6 % | 19,0 % | 14,2 % | 12,9 % |
+| Volatilité estimée | 32,8 % | 27,0 % | 24,2 % | 33,5 % |
+| Sharpe ex ante | 0,36 | 0,71 | 0,59 | 0,39 |
+| Volatilité mesurée (2 ans) | 22,4 % | 25,8 % | 21,3 % | 22,5 % |
+| Sharpe avec la volatilité mesurée | 0,52 | 0,74 | 0,67 | 0,57 |
+| Bêta (MSCI World, ajusté) | 1,29 | 1,40 | 1,24 | 1,31 |
+| Score ESG moyen (Bloomberg) | 4,81 | 4,66 | 5,44 | 4,90 |
+| Capitalisation médiane des lignes | 39 Md$ | 146 Md$ | 95 Md$ | 39 Md$ |
 
-Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes.
+Le gain de Sharpe par rapport à l'équipondéré reste positif sous des hypothèses de corrélation basses comme hautes,
+et avec la volatilité mesurée sur deux ans d'historique. Les corrélations mesurées (0,43 / 0,22 / 0,11) sont plus
+faibles que celles du modèle : l'hypothèse est prudente.
 
 ## Limites
 
 **Données**
-* Une seule date d'observation : volatilités estimées sur trois rendements, corrélations supposées et non estimées.
+* Construction fondée sur une seule date d'observation : volatilités estimées sur trois rendements, corrélations
+  supposées. L'historique Bloomberg ne sert qu'au contrôle a posteriori.
 * Rendements en devise locale (convention Bloomberg) : pour un investisseur en euros, la variation du dollar sur les titres américains
   (deux tiers de l'univers) n'est pas prise en compte.
 * Upside, croissance attendue et PEG reposent sur le consensus des analystes, structurellement optimiste.
@@ -119,6 +127,6 @@ streamlit run app.py
 L'application s'ouvre dans le navigateur à l'adresse http://localhost:8501. Le classeur Excel du bonus s'ouvre aussi
 directement depuis le dossier `resultats/`.
 
-Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations), `analytics.py` (volatilité, frontière), `scoring.py`
+Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations, historique Bloomberg), `analytics.py` (volatilité, frontière), `scoring.py`
 (z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection, optimisation). Bonus : `allocation.py`
 (optimisation et track record), `tab_allocation.py` (onglet), `export_allocation_excel.py` (classeur Excel).

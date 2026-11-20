@@ -219,6 +219,23 @@ if HAS_CAP:
     full["mcap"] = full["ticker"].map(_c["mcap_usd_bn"])
     W_CAP = full["mcap"] / full["ticker"].map(_c["lignes_univers"])
     W_CAP = W_CAP / W_CAP.sum()
+# Historique Bloomberg (104 semaines au 13/11/2026) : contrôle a posteriori, sans effet sur la construction
+BETAS, PX_W = du.load_betas(), du.load_weekly_prices()
+HAS_HIST = (BETAS is not None and PX_W is not None and full["ticker"].isin(BETAS["ticker"]).all()
+            and full["ticker"].isin(PX_W.columns).all())
+if HAS_HIST:
+    _b = BETAS.set_index("ticker")
+    full["beta"] = full["ticker"].map(_b["beta_usd_adj"])
+    full["beta_raw"] = full["ticker"].map(_b["beta_usd_raw"])
+    full["vol_hist"] = full["ticker"].map(_b["vol_hist_usd"])
+    RET_W = PX_W[full["ticker"].tolist()].pct_change().dropna()
+    COV_HIST = np.cov(RET_W.to_numpy(float), rowvar=False) * 52
+    _C = np.corrcoef(RET_W.to_numpy(float), rowvar=False)
+    _iu = np.triu_indices(len(full), 1)
+    _sub, _sec = full["subindustry"].to_numpy(object), full["sector"].to_numpy(object)
+    _ss, _se = (_sub[:, None] == _sub[None, :])[_iu], (_sec[:, None] == _sec[None, :])[_iu]
+    RHO_MES = (float(_C[_iu][_ss].mean()), float(_C[_iu][_se & ~_ss].mean()), float(_C[_iu][~_se].mean()))
+    HIST_SPAN = f"{len(RET_W)} semaines, du {PX_W.index[0]:%d/%m/%Y} au {PX_W.index[-1]:%d/%m/%Y}"
 
 mask = df_full.sector.isin(sectors) & df_full.subindustry.isin(subs) & df_full.country.isin(countries)
 df = base.loc[mask].copy()
@@ -233,7 +250,7 @@ st.markdown(f"""<div class="amundi-band"><img src="{LOGO_URL}" alt="Amundi">
 <div><h1>Univers d'actions : analyse et construction de portefeuille</h1>
 <p>99 valeurs Technologie et Communication</p></div></div>""", unsafe_allow_html=True)
 st.caption("Données : fichier « universe of stock 261113 » (99 titres, 17 colonnes), au 13/11/2026"
-           + (" ; scores ESG S&P Global sourcés titre par titre." if HAS_ESG else "."))
+           + (" ; scores ESG et capitalisations : Bloomberg." if HAS_ESG else "."))
 
 tabs = st.tabs([
     "1 · Univers", "2 · Rendement & risque", "3 · Valorisation & attentes", "4 · Critère agrégé",
@@ -760,18 +777,16 @@ with tabs[5]:
     if not HAS_ESG:
         st.warning("Fichier `data/esg_scores.csv` absent.")
     else:
-        _prov = df_full["esg_provider"].fillna("")
-        n_bbg = int((_prov.str.contains("Bloomberg") & df_full["esg"].notna()).sum())
-        n_web = int((_prov.str.contains("Sustainable1") & df_full["esg"].notna()).sum())
         n_missing = int(df_full["esg"].isna().sum())
-        st.caption(f"S&P Global ESG Score (0–100, plus haut = meilleur, relatif à l'industrie). {n_web} titres : page "
-                   f"S&P Global de la société (2025–2026) ; {n_bbg} titres : Bloomberg (relevé du 19/11/2026) ; "
-                   f"{n_missing} titres non notés par S&P Global, exclus du filtre ESG.")
+        st.caption(f"Bloomberg ESG Score (0 à 10, plus haut = meilleur), relevé sur Bloomberg en novembre 2026 pour "
+                   f"{int(df_full['esg'].notna().sum())} titres. Le score évalue la gestion des enjeux environnementaux, "
+                   "sociaux et de gouvernance jugés importants pour l'industrie de chaque société."
+                   + (f" {n_missing} titres non notés, exclus du filtre ESG." if n_missing else ""))
         de = df.dropna(subset=["esg"])
         k = st.columns(4)
         k[0].metric("Titres notés", f"{len(de)} / {len(df)}")
-        k[1].metric("Score moyen", f"{de.esg.mean():.1f}")
-        k[2].metric("Score médian", f"{de.esg.median():.1f}")
+        k[1].metric("Score moyen", f"{de.esg.mean():.2f}")
+        k[2].metric("Score médian", f"{de.esg.median():.2f}")
         k[3].metric("Au-dessus de la médiane de leur sous-industrie", f"{int((df.esg_above == 1).sum())}")
         c1, c2 = st.columns(2)
         with c1:
@@ -805,18 +820,19 @@ with tabs[5]:
         qt = de.groupby("quintile", observed=True)[["esg", "tr_prev_year", "ret_ytd", "vol", "sharpe_ante", "upside"]].mean()
         st.markdown("**Rendement et risque moyens par quintile ESG** (Q1 = scores les plus bas)")
         st.dataframe(qt.rename(columns=du.LABELS).style.format("{:.2f}"), width="stretch")
-        with st.expander("Sources des scores ESG"):
-            st.dataframe(df_full.loc[df_full.esg.notna(), ["ticker", "name", "esg", "esg_provider", "esg_date", "source_url"]],
-                         hide_index=True, width="stretch",
-                         column_config={"source_url": st.column_config.LinkColumn("Source")})
+        with st.expander("Scores ESG par titre"):
+            st.dataframe(df_full.loc[df_full.esg.notna(), ["ticker", "name", "esg", "esg_provider", "esg_date"]]
+                         .rename(columns={"ticker": "Ticker", "name": "Société", "esg": "Score ESG",
+                                          "esg_provider": "Source", "esg_date": "Date"}),
+                         hide_index=True, width="stretch")
         _sp = du.ols_fit(de["esg"], de["tr_prev_year"])["spearman"]
         _sv_ = du.ols_fit(de["esg"], de["vol"])["spearman"]
         _ss_ = du.ols_fit(de["esg"], de["Score final"])["spearman"]
         _em = de.groupby("sector").esg.median()
         _us = de.groupby(de.country == "UNITED STATES").esg.median()
         recap([f"<b>Couverture</b> : {len(de)} titres notés sur {len(df)}. Score médian "
-               + " ; ".join(f"{i} {v:.0f}" for i, v in _em.items())
-               + (f" ; États-Unis {_us.get(True, np.nan):.0f} contre {_us.get(False, np.nan):.0f} hors États-Unis"
+               + " ; ".join(f"{i} {v:.2f}" for i, v in _em.items())
+               + (f" ; États-Unis {_us.get(True, np.nan):.2f} contre {_us.get(False, np.nan):.2f} hors États-Unis"
                   + (" : les sociétés non américaines, majoritairement européennes, sont mieux notées."
                      if _us.get(False, 0) > _us.get(True, 0) else ".") if len(_us) == 2 else "."),
                f"<b>Performance</b> : corrélation de rang ESG / total return N-1 {_sp:.2f}"
@@ -995,8 +1011,14 @@ entre secteurs. Ces niveaux sont élevés à dessein : les valeurs technologique
 moteurs communs (cycle de l'IA, taux d'intérêt, appétit pour la croissance). Le tableau ci-dessous mesure la
 sensibilité des conclusions à ces hypothèses.
 """)
+    if HAS_HIST:
+        st.markdown(f"**Contrôle sur données Bloomberg** ({HIST_SPAN}, prix en dollars) : corrélation moyenne mesurée "
+                    f"**{RHO_MES[0]:.2f}** au sein d'une sous-industrie, **{RHO_MES[1]:.2f}** au sein d'un secteur, "
+                    f"**{RHO_MES[2]:.2f}** entre secteurs. Les niveaux retenus sont donc prudents : ils surestiment le "
+                    "risque des portefeuilles diversifiés. La ligne « Mesurée » du tableau applique ces niveaux.")
     sens = []
-    for nm, rh in an.RHO_SETS.items():
+    _rho_sets = dict(an.RHO_SETS, **({"Mesurée": RHO_MES} if HAS_HIST else {}))
+    for nm, rh in _rho_sets.items():
         cov_s = an.covariance(full["vol"], an.block_correlation(full, *rh))
         P_s = build_portfolio(full, tuple(elig_all), N_TOTAL, CAP, rh)
         w_s = P_s["Poids"].reindex(full.index).fillna(0).to_numpy()
@@ -1194,6 +1216,8 @@ with tabs[7]:
                 "sharpe_ante", "rule_of_40", "Raison"] + (["esg", "esg_med_sub"] if HAS_ESG else [])
     det = P.sort_values("Poids", ascending=False)[det_cols].copy()
     det["Poids"] = det["Poids"] * 100
+    if HAS_HIST:
+        det.insert(det.columns.get_loc("vol") + 1, "Bêta", det["ticker"].map(_b["beta_usd_adj"]))
     det = det.rename(columns={"ticker": "Ticker", "name": "Société", "sector": "Secteur", "subindustry": "Sous-industrie",
                               "country": "Pays", "Poids": "Poids (%)", "mu": "Rendement attendu (%)",
                               "vol": "Volatilité (%)", "sharpe_ante": lab("sharpe_ante"),
@@ -1242,14 +1266,53 @@ with tabs[7]:
     vals.index = [lab(c) for c in vals.index]
     c2.dataframe(vals.style.format("{:.2f}"), width="stretch", height=500)
 
+    _hist_pts = []
+    if HAS_HIST:
+        st.subheader("Contrôle sur l'historique de prix")
+        st.caption(f"Prix hebdomadaires en dollars extraits de Bloomberg ({HIST_SPAN}). Les portefeuilles ne changent "
+                   "pas : leur risque est seulement mesuré sur l'historique, puis comparé à celui du modèle. Bêta contre "
+                   "le MSCI World, ajusté (0,67 × bêta mesuré + 0,33).")
+        _hw = {"Équipondéré univers (99 titres)": EW}
+        _hw.update({f"Portefeuille {nm[0].lower() + nm[1:]}": sel["Poids"] for nm, sel in ports.items()})
+        if HAS_CAP:
+            _hw[CAPW_NAME] = W_CAP
+        _hr = []
+        for nm, w_ in _hw.items():
+            wv = w_.reindex(full.index).fillna(0.0).to_numpy(float)
+            r_m, v_m = an.port_stats(wv, full["mu"].to_numpy(float), COV_FULL)
+            v_h = float(np.sqrt(wv @ COV_HIST @ wv) * 100)
+            _hr.append({"Portefeuille": nm, "Volatilité du modèle (%)": v_m, "Volatilité mesurée (%)": v_h,
+                        "Bêta (MSCI World)": float(wv @ full["beta"].to_numpy(float)),
+                        "Sharpe ex ante (modèle)": r_m / v_m, "Sharpe ex ante (volatilité mesurée)": r_m / v_h})
+        hist_t = pd.DataFrame(_hr).set_index("Portefeuille")
+        st.dataframe(hist_t.style.format(precision=2), width="stretch")
+        _e = hist_t.iloc[0]
+        _o = hist_t.loc[[c_ for c_ in PF_COLS if c_ in hist_t.index]]
+        _same = (_o["Sharpe ex ante (volatilité mesurée)"] > _e["Sharpe ex ante (volatilité mesurée)"]).all()
+        _hist_pts = [
+            "<b>Contrôle sur l'historique</b> : avec la volatilité mesurée sur deux ans, Sharpe ex ante "
+            + " ; ".join(f"{i_[13:]} {v_:.2f}" for i_, v_ in _o["Sharpe ex ante (volatilité mesurée)"].items())
+            + f" contre {_e['Sharpe ex ante (volatilité mesurée)']:.2f} pour l'équipondéré"
+            + (" : la conclusion tient sur données réelles." if _same else " : la conclusion ne tient pas pour tous les "
+               "portefeuilles sur données réelles."),
+            "<b>Bêta</b> : " + " ; ".join(f"{i_[13:]} {v_:.2f}" for i_, v_ in _o["Bêta (MSCI World)"].items())
+            + f" contre {_e['Bêta (MSCI World)']:.2f} pour l'équipondéré."
+            + "".join(f" Portefeuille{'s' if len(g_) > 1 else ''} {' et '.join(i_[13:] for i_ in g_)} : " + t_
+                      for g_, t_ in (
+                          ([i_ for i_, v_ in _o["Bêta (MSCI World)"].items() if v_ > _e["Bêta (MSCI World)"] + 0.05],
+                           "exposition au marché plus forte, une partie du rendement attendu supplémentaire rémunère "
+                           "ce risque."),
+                          ([i_ for i_, v_ in _o["Bêta (MSCI World)"].items() if v_ <= _e["Bêta (MSCI World)"] + 0.05],
+                           "exposition au marché comparable ou plus faible, l'avantage ne vient pas du marché."))
+                      if g_)]
+
     _cap_pts = []
     if HAS_CAP:
         st.subheader("Capitalisation boursière")
         st.caption("Information complémentaire, non utilisée dans la construction. Capitalisations en milliards de "
-                   "dollars relevées sur companiesmarketcap.com : clôture du 13/11/2026 pour 38 titres, cours du 10 au "
-                   "18/11/2026 pour la plupart des autres (Vend Marketplaces : 25/09/2026). STMicroelectronics (Paris, "
-                   "Milan) et Fox (actions A, B) occupent deux lignes : leur capitalisation est partagée entre les deux "
-                   "pour la pondération.")
+                   "dollars à la clôture du 13/11/2026 (Bloomberg). STMicroelectronics (Paris, Milan) et Fox "
+                   "(actions A, B) occupent deux lignes : leur capitalisation est partagée entre les deux pour la "
+                   "pondération.")
         seuil = st.select_slider("Seuil de petite capitalisation (Md$)", options=[5, 10, 15, 20, 25], value=10)
         mc = full["mcap"]
         pw_ = {comp.columns[0]: EW, **{c_: ports[n_]["Poids"] for c_, n_ in zip(PF_COLS, ports)}, CAPW_NAME: W_CAP}
@@ -1329,13 +1392,13 @@ with tabs[7]:
            f"<b>Risque</b> : les 5 premières contributions représentent "
            f"{Pw['Contribution au risque'].nlargest(5).sum():.0%} du risque pour {Pw['Poids'].nlargest(5).sum():.0%} des "
            f"poids ; {int((Pw['Poids'] >= CAP - 1e-6).sum())} titres au plafond de 5 %.",
-           (f"<b>Filtre ESG</b> : score ESG moyen {comp.loc['Score ESG moyen'].iloc[2]:.1f} contre "
-            f"{comp.loc['Score ESG moyen'].iloc[1]:.1f} sans filtre, pour un Sharpe ex ante de "
+           (f"<b>Filtre ESG</b> : score ESG moyen {comp.loc['Score ESG moyen'].iloc[2]:.2f} contre "
+            f"{comp.loc['Score ESG moyen'].iloc[1]:.2f} sans filtre, pour un Sharpe ex ante de "
             f"{comp.loc['Sharpe ex ante'].iloc[2]:.2f} contre {comp.loc['Sharpe ex ante'].iloc[1]:.2f} : le gain "
             f"extra-financier coûte {comp.loc['Sharpe ex ante'].iloc[1] - comp.loc['Sharpe ex ante'].iloc[2]:.2f} de "
             f"Sharpe" + (", et les deux portefeuilles restent nettement au-dessus de l'équipondéré."
                          if comp.loc["Sharpe ex ante", PF_COLS].min() > comp.loc["Sharpe ex ante"].iloc[0] + 0.1 else ".")
-            if len(PF_COLS) > 1 else f"Meilleur Sharpe ex ante : {best}.")] + _cap_pts,
+            if len(PF_COLS) > 1 else f"Meilleur Sharpe ex ante : {best}.")] + _hist_pts + _cap_pts,
           [f"Quotas : {N_TOTAL} places réparties entre sous-industries au prorata de leur taille (plus forts restes) ; "
            "un titre n'est retenu que si son score dépasse la médiane de sa sous-industrie ; places non pourvues "
            "attribuées aux meilleurs scores restants.",
@@ -1360,14 +1423,16 @@ with tabs[8]:
 | Portefeuille | 30 titres : quotas par sous-industrie, score > médiane, Sharpe ex ante maximal, 5 % maximum par titre |
 | Filtre ESG | Score ESG > médiane de la sous-industrie ; repêchage des bons scores (> médiane) dont l'ESG ≥ médiane de l'univers, priorité aux sous-industries absentes |
 | Bonus · Track record | Exercice indépendant (fichier « Exercice allocation 261113 ») : 5 meilleurs sous-jacents à 20 % sur chaque période, dates choisies par programmation dynamique (optimum exact ex post, 10 réallocations au plus), détention sans rééquilibrage entre deux dates |
-| Capitalisations | Source externe (companiesmarketcap.com) : clôture du 13/11/2026 pour 38 titres, cours du 10 au 18/11 pour la plupart des autres ; utilisées seulement pour le portefeuille de référence pondéré par la capitalisation et la comparaison des tailles, pas dans la construction |
+| Bêtas et historique | Prix hebdomadaires en dollars (Bloomberg, 104 semaines au 13/11/2026) ; bêta = pente de la régression des rendements du titre sur ceux du MSCI World, ajusté (0,67 × brut + 0,33) ; servent à contrôler le risque, pas à la construction |
+| Capitalisations | Bloomberg, clôture du 13/11/2026 en dollars ; utilisées seulement pour le portefeuille de référence pondéré par la capitalisation et la comparaison des tailles, pas dans la construction |
 """)
     st.subheader("Limites et angles morts")
     c1, c2 = st.columns(2)
     c1.markdown("""
 **Données**
-- Une seule date d'observation, sans historique de prix : volatilités estimées sur 3 rendements seulement,
-  corrélations supposées (structure par blocs) et non estimées.
+- Construction fondée sur une seule date d'observation : volatilités estimées sur 3 rendements seulement,
+  corrélations supposées (structure par blocs). Contrôle a posteriori sur 104 semaines de prix Bloomberg :
+  volatilités proches en niveau, corrélations mesurées plus faibles que supposées.
 - Rendements en devise locale (convention Bloomberg) : pour un investisseur en euros, la variation du dollar
   sur les titres américains (deux tiers de l'univers) n'est pas prise en compte.
 - Upside, croissance LT du BPA et PEG reposent sur le consensus des analystes : prévisions structurellement
@@ -1376,7 +1441,8 @@ with tabs[8]:
 - Sous-industries GICS de 1 ou 2 titres : comparaisons entre pairs fragiles, malgré le rapprochement vers le secteur.
 
 **ESG**
-- Un autre fournisseur (MSCI, Sustainalytics) peut classer différemment : les notations ESG divergent fortement.
+- Un autre fournisseur peut classer différemment : les notations ESG divergent fortement (corrélation de rang de
+  0,38 entre les scores Bloomberg et S&P Global sur l'univers).
 - Médiane ESG d'une sous-industrie de 2 ou 3 titres peu robuste.
 """)
     c2.markdown("""
@@ -1399,21 +1465,37 @@ with tabs[8]:
   une description et non comme une performance réalisable.
 """)
     if HAS_CAP:
-        st.subheader("Capitalisations boursières : valeurs et sources")
+        st.subheader("Capitalisations boursières au 13/11/2026")
         _ct = CAPS.sort_values("mcap_usd_bn", ascending=False)[["ticker", "name", "mcap_usd_bn", "date_cours", "source",
                                                                 "note"]].fillna("")
         _ct = _ct.rename(columns={"ticker": "Ticker", "name": "Société", "mcap_usd_bn": "Capitalisation (Md$)",
                                   "date_cours": "Date du cours", "source": "Source", "note": "Remarque"})
         st.dataframe(_ct, hide_index=True, width="stretch", height=420,
-                     column_config={"Capitalisation (Md$)": st.column_config.NumberColumn(format="%.2f"),
-                                    "Source": st.column_config.LinkColumn("Source", display_text=r"https?://(.+)")})
-        st.caption("Capitalisations en milliards de dollars, relevées le 19/11/2026 sur companiesmarketcap.com (pages de "
-                   "classement sectoriel ou page de la société), sauf Vend Marketplaces (StockAnalysis). Les pages de "
-                   "classement n'affichent pas de date : celle de la page « tech » correspond à la clôture du 13/11/2026 "
-                   "(cours de NVIDIA vérifié), les autres aux cours des jours suivants. Conversions : Flex à 1,31 \\$ par £, "
-                   "Vend à 9,5077 NOK par \\$. Information complémentaire, non utilisée dans la construction du portefeuille.")
+                     column_config={"Capitalisation (Md$)": st.column_config.NumberColumn(format="%.2f")})
+        st.caption("Capitalisations en milliards de dollars à la clôture du 13/11/2026, extraites de Bloomberg (champ "
+                   "CUR_MKT_CAP converti en dollars). Information complémentaire, non utilisée dans la construction du "
+                   "portefeuille.")
         st.download_button("Télécharger les capitalisations (CSV)", CAPS.to_csv(index=False).encode(), "capitalisations.csv",
                            "text/csv")
+    if HAS_HIST:
+        st.subheader("Bêtas et volatilités historiques")
+        _bt = full[["ticker", "name", "country"]].assign(**{
+            "Bêta ajusté (MSCI World)": full["beta"], "Bêta mesuré (MSCI World)": full["beta_raw"],
+            "Bêta Bloomberg (indice local)": full["ticker"].map(_b["beta_local_bbg_raw"]),
+            "Corrélation avec le MSCI World": full["ticker"].map(_b["corr_mxwo"]),
+            "Volatilité historique (%)": full["vol_hist"], "Volatilité du modèle (%)": full["vol"]})
+        _bt = _bt.rename(columns={"ticker": "Ticker", "name": "Société", "country": "Pays"})
+        st.dataframe(_bt.sort_values("Bêta ajusté (MSCI World)", ascending=False).style.format(precision=2),
+                     hide_index=True, width="stretch", height=420)
+        st.caption(f"Bloomberg, prix hebdomadaires en dollars ({HIST_SPAN}). Bêta mesuré : pente de la régression des "
+                   "rendements du titre sur ceux du MSCI World ; ajusté : 0,67 × mesuré + 0,33. Le bêta Bloomberg par "
+                   "défaut est mesuré contre l'indice local du titre (AEX, DAX, S&P 500…) : il n'est pas comparable "
+                   "d'un pays à l'autre et n'est donné qu'à titre indicatif.")
+        c1_, c2_ = st.columns(2)
+        c1_.download_button("Télécharger les bêtas (CSV)", BETAS.to_csv(index=False).encode(), "betas_bloomberg.csv",
+                            "text/csv")
+        c2_.download_button("Télécharger les prix hebdomadaires (CSV)", PX_W.to_csv().encode(), "prix_hebdo_usd.csv",
+                            "text/csv")
 
     st.subheader("Table complète")
     st.dataframe(df, hide_index=True, width="stretch")

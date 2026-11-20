@@ -66,6 +66,9 @@ LABELS = {
     "sharpe_post": "Sharpe ex post (année N-1)",
     # ESG (fichier externe sourcé, optionnel)
     "esg": "Score ESG",
+    # historique Bloomberg (contrôle a posteriori)
+    "beta": "Bêta (MSCI World, ajusté)",
+    "vol_hist": "Volatilité historique 2 ans (%)",
 }
 
 NUMERIC = [
@@ -126,6 +129,32 @@ def load_caps(path: Path | str = CAPS_PATH) -> pd.DataFrame | None:
         return None
     caps = pd.read_csv(path).dropna(subset=["mcap_usd_bn"])
     return caps if len(caps) else None
+
+
+BETAS_PATH = Path(__file__).parent / "data" / "bloomberg_betas.csv"
+PRICES_PATH = Path(__file__).parent / "data" / "prix_hebdo_usd.csv"
+
+
+def load_betas(path: Path | str = BETAS_PATH) -> pd.DataFrame | None:
+    """Bêtas et volatilités historiques (Bloomberg, 104 semaines au 13/11/2026, prix en dollars).
+
+    beta_usd_raw = pente de la régression des rendements hebdomadaires du titre sur ceux du MSCI World ;
+    beta_usd_adj = 0,67 × brut + 0,33 (ajustement de Blume) ; beta_local_bbg_* = bêta Bloomberg par défaut,
+    mesuré contre l'indice local du titre (non comparable d'un pays à l'autre).
+    """
+    path = Path(path)
+    if not path.exists():
+        return None
+    b = pd.read_csv(path).dropna(subset=["beta_usd_raw"])
+    return b if len(b) else None
+
+
+def load_weekly_prices(path: Path | str = PRICES_PATH) -> pd.DataFrame | None:
+    """Cours hebdomadaires en dollars (date en index, MXWO = MSCI World, puis un ticker par colonne)."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    return pd.read_csv(path, index_col="date", parse_dates=["date"])
 
 
 def load_raw(path: Path | str = DATA_PATH) -> pd.DataFrame:
