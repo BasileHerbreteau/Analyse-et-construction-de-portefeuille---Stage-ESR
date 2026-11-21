@@ -100,7 +100,7 @@ Communication Services, trois ETF). Il ne réutilise ni l'univers d'actions, ni 
   linéaire en poids et son maximum est atteint avec 20 % sur les 5 sous-jacents qui progressent le plus. Les dates de
   réallocation sont choisies par programmation dynamique, ce qui donne l'optimum global (contrôlé par recherche
   exhaustive et tirages aléatoires).
-* **Classeur Excel** `resultats/track_record_allocation_dynamique.xlsx`, téléchargeable depuis l'onglet : track
+* **Classeur Excel** `resultats/track_record_exercice_3.xlsx`, téléchargeable depuis l'onglet : track
   record recalculé par formules à partir des dates et des poids, modifiables.
 
 | 01/01 – 30/10/2026 | Dynamique optimal | Statique optimal (0 réallocation) | Équipondéré (29) |
@@ -122,7 +122,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-L'application s'ouvre alors à l'adresse http://localhost:8501 de la machine qui l'a lancée. Le classeur Excel de l'exo 3
+L'application s'ouvre alors à l'adresse http://localhost:8501 de la machine qui l'a lancée. Le classeur Excel de l'exercice 3
 s'ouvre aussi directement depuis le dossier `resultats/`.
 
 Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations, historique Bloomberg), `analytics.py`

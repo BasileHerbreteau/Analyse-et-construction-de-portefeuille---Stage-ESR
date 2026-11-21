@@ -19,8 +19,8 @@ import data_utils as du
 C_NAVY, C_BLUE, C_LIGHT, C_TEAL, C_PALE, C_RED, C_GREY = (du.C_NAVY, du.C_BLUE, du.C_LIGHT, du.C_TEAL, du.C_PALE,
                                                             du.C_RED, du.C_GREY)
 TEMPLATE = "plotly_white"
-EXCEL = Path(__file__).parent / "resultats" / "track_record_allocation_dynamique.xlsx"
-EXCEL_NAME = "Track record - portefeuille dynamique.xlsx"
+EXCEL = Path(__file__).parent / "resultats" / "track_record_exercice_3.xlsx"   # version finale mise en forme
+EXCEL_NAME = "Partie 3 - Track record d'un portefeuille dynamique.xlsx"
 STRICT = Path(__file__).parent / "data" / "variante_plafond_quotidien.csv"
 NAMES = {"opt": "Dynamique optimal", "static": "Statique optimal (0 réallocation)", "ew": "Équipondéré (29)"}
 COLORS = {"opt": C_NAVY, "static": C_TEAL, "ew": C_GREY}
