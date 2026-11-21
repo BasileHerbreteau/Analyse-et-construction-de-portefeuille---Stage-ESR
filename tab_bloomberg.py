@@ -124,8 +124,8 @@ def render(ctx: dict, show, recap):
         "Paire de titres": ["Même sous-industrie", "Même secteur, autre sous-industrie", "Secteurs différents"],
         "Hypothèse des onglets 7 et 8": list(rho), "Mesurée (Bloomberg)": [m for m, _ in blk],
         "Nombre de paires": [n for _, n in blk]}).style.format(precision=2), hide_index=True, width="stretch")
-    st.caption("Moyenne des corrélations de rendements hebdomadaires par groupe de paires. Hypothèse supérieure à la "
-               "mesure : marge de prudence assumée (onglet 7).")
+    st.markdown("Moyenne des corrélations de rendements hebdomadaires par groupe de paires. **Hypothèse supérieure à la "
+               "mesure : marge de prudence assumée (onglet 7).**")
 
     # ------------------------------------------------------------------ portefeuilles
     st.subheader("Portefeuilles reconstruits avec les bêtas")
@@ -212,7 +212,7 @@ def render(ctx: dict, show, recap):
                       yaxis=dict(categoryorder="array", categoryarray=chg["ticker"].tolist()),
                       legend=dict(orientation="h", y=-0.18))
     show(fig)
-    st.caption(f"{len(chg)} lignes modifiées sur {len(held)} détenues dans l'une ou l'autre version. "
+    st.markdown(f"{len(chg)} lignes modifiées sur {len(held)} détenues dans l'une ou l'autre version. "
                f"{len(same)} lignes inchangées (écart < 0,1 pt), non représentées : "
                f"{', '.join(same.sort_values('apres', ascending=False)['ticker'])}.")
 

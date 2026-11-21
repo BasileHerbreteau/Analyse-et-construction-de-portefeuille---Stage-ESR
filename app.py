@@ -414,7 +414,7 @@ T<sub>k</sub> durée de la période en années.
         fig.add_annotation(x=_hi * 0.85, y=_hi * 0.85, text="y = x", showarrow=False, yshift=12, font_color=C_GREY)
         fig.update_layout(height=380, showlegend=False)
         show(fig, c2)
-        st.caption("Sous la diagonale : volatilité individuelle élevée, ramenée vers celle des pairs ; au-dessus : "
+        st.markdown("Sous la diagonale : volatilité individuelle élevée, ramenée vers celle des pairs ; au-dessus : "
                    f"volatilité faible, relevée. Dispersion entre titres : {base['vol_obs'].std():.0f} pt avant, "
                    f"{base['vol'].std():.0f} pt après.")
 
@@ -451,7 +451,7 @@ T<sub>k</sub> durée de la période en années.
         f_rv = ols_line(fig, df["vol"], df[ret_var])
         fig.update_layout(height=480)
         show(fig, c1)
-        st.caption(f"Droite des moindres carrés : en moyenne, +10 pt de volatilité vont de pair avec "
+        st.markdown(f"Droite des moindres carrés : en moyenne, +10 pt de volatilité vont de pair avec "
                    f"{10 * f_rv['slope']:+.1f} pt de rendement (pente {f_rv['slope']:.2f}). R² {f_rv['r2']:.2f} : la "
                    f"volatilité explique {f_rv['r2']:.0%} des écarts de rendement entre titres.")
     with c2:
@@ -466,7 +466,7 @@ T<sub>k</sub> durée de la période en années.
         f_pp = ols_line(fig, df["tr_prev_year"], df["ret_ytd"])
         fig.update_layout(height=550)
         show(fig, c2)
-        st.caption(f"Trait plein y = x : même performance les deux années. Droite pointillée (régression) : pente "
+        st.markdown(f"Trait plein y = x : même performance les deux années. Droite pointillée (régression) : pente "
                    f"{f_pp['slope']:.2f}, soit {10 * f_pp['slope']:+.1f} pt de YTD en moyenne pour +10 pt en N-1 "
                    f"; Spearman {f_pp['spearman']:.2f}.")
 
@@ -538,7 +538,7 @@ with tabs[2]:
                                font=dict(color=col_, size=11))
         fig.update_yaxes(range=[0, y_max])
         show(fig, c1)
-        st.caption("Au-dessus de PEG = 2 : valorisation exigeante ; sous PEG = 1 : croissance à prix modéré.")
+        st.markdown("Au-dessus de PEG = 2 : valorisation exigeante ; sous PEG = 1 : croissance à prix modéré.")
     with c2:
         fig = px.scatter(df, x="peg", y="upside", color="sector", hover_name="ticker",
                          color_discrete_map=SECTOR_COLORS, template=TEMPLATE,
@@ -858,7 +858,7 @@ with tabs[6]:
     k[1].metric("Écart-type entre titres : prime", f"{df['Ancrage prime de risque'].std():.1f} pt")
     k[2].metric("Écart-type entre titres : alpha z-scores", f"{df['Alpha z-scores'].std():.1f} pt")
     k[3].metric("Corrélation de rang μ / score final", f"{df.mu.corr(df['Score final'], method='spearman'):.2f}")
-    st.caption("Le niveau moyen vient de la prime ; la sélection et la pondération dépendent des écarts entre titres, "
+    st.markdown("Le niveau moyen vient de la prime ; la sélection et la pondération dépendent des écarts entre titres, "
                "auxquels l'alpha z-scores contribue dans une proportion comparable à la prime.")
     dec = df.groupby("subindustry")[MU_COMP + ["mu"]].mean().sort_values("mu")
     fig = go.Figure()
@@ -889,9 +889,9 @@ with tabs[6]:
                  hide_index=True, width="stretch")
     st.caption("Régression linéaire en coupe sur les 99 titres : variable = a + b₁·Croissance + b₂·Rentabilité + "
                "b₃·Valorisation. Coefficient : variation de la variable (en points) pour +1 point de pilier, les deux "
-               "autres étant fixés. Coefficient t = coefficient ÷ son erreur-type ; |t| > 2 (surligné) : le coefficient dépasse "
-               "deux fois son incertitude d'estimation, un tel effet aurait moins de 5 % de chances d'apparaître par "
-               "hasard s'il était nul. R² : part des écarts entre titres expliquée par les trois piliers ensemble. Données à une même "
+               "autres étant fixés. Coefficient t = coefficient ÷ son erreur-type ; |t| > 2 (surligné) : effet statistiquement "
+               "significatif : le pilier a un lien réel avec la variable, et non un lien dû au hasard (moins de 5 % de "
+               "risque de se tromper). R² : part des écarts entre titres expliquée par les trois piliers ensemble. Données à une même "
                "date : test de cohérence, pas un backtest.")
 
     fig = px.box(df, x="sector", y="sharpe_ante", color="sector", points="all", hover_name="ticker",
@@ -1207,7 +1207,7 @@ with tabs[7]:
     det = det[det["Poids (%)"] > 0]
     st.dataframe(det.style.format(precision=2), hide_index=True, width="stretch")
     if len(zero):
-        st.caption(f"Sélectionnés mais pondérés à 0 % par l'optimiseur : {', '.join(zero['Ticker'])}.")
+        st.markdown(f"Sélectionnés mais pondérés à 0 % par l'optimiseur : {', '.join(zero['Ticker'])}.")
     st.download_button("Télécharger la composition (CSV)", det.to_csv(index=False).encode(),
                        f"portefeuille_{'esg' if esg_on else 'sans_esg'}.csv", "text/csv")
 

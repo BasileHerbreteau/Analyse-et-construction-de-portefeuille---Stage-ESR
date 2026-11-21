@@ -146,7 +146,7 @@ performance totale réalisée, avec <b>20 % maximum par sous-jacent</b> et <b>10
                       margin=dict(l=10))
     fig.update_yaxes(tickfont=dict(size=11))
     show(fig)
-    st.caption(f"Écart de {(perf.iloc[-1] - perf.iloc[0]) * 100:.0f} points entre le meilleur ({al.label(perf.index[-1])}) "
+    st.markdown(f"Écart de {(perf.iloc[-1] - perf.iloc[0]) * 100:.0f} points entre le meilleur ({al.label(perf.index[-1])}) "
                f"et le moins bon sous-jacent ({al.label(perf.index[0])}). Indices de prix, dividendes non inclus ; "
                "Russell 2000, S&P Communication Services et iShares Global Tech cotés en dollars.")
 
