@@ -52,6 +52,8 @@ div[data-testid="stMetric"] {{ background: #F3F7FC; border-left: 4px solid {C_BL
 div[data-testid="stTabs"] div[role="tablist"] {{ position: sticky; top: 3.6rem; z-index: 999;
     background: white; padding-top: .3rem; border-bottom: 1px solid #DCE6F2; }}
 [role="tab"] p {{ font-weight: 600; }}
+/* onglet 8 (portefeuille final) mis en avant */
+div[data-testid="stTabs"] div[role="tablist"] > [role="tab"]:nth-of-type(8) p {{ font-weight: 800; color: {C_NAVY}; }}
 .amundi-band {{ background: linear-gradient(90deg, {C_NAVY} 0%, {C_BLUE} 70%, {C_LIGHT} 100%);
     color: white; border-radius: 10px; padding: 1.1rem 1.4rem; margin-bottom: 1rem;
     display: flex; align-items: center; gap: 1.2rem; }}
@@ -257,7 +259,7 @@ st.caption("Données : fichier « universe of stock 261113 » (99 titres, 17 col
 tabs = st.tabs([
     "1 · Univers", "2 · Rendement & risque", "3 · Valorisation & attentes", "4 · Critère agrégé",
     "5 · Comparaison avec la Rule of 40", "6 · ESG", "7 · Rendement attendu & frontière",
-    "8 · Portefeuille final", "Annexe", "Bonus - Historique Bloomberg", "Partie 3 - Track record",
+    "8 · Portefeuille final", "Annexe", "Bonus - Historique Bloomberg", "Exo 3 - Track record",
 ])
 # Au clic sur un onglet, la page revient au début de l'onglet (juste sous la barre figée).
 st.iframe("""<script>
@@ -1346,23 +1348,6 @@ with tabs[7]:
 # Annexe : méthodes et limites
 # =========================================================================== #
 with tabs[8]:
-    st.subheader("Synthèse des méthodes")
-    st.markdown(f"""
-| Étape | Méthode |
-| --- | --- |
-| Valeurs extrêmes | Winsorisation : chaque variable, sauf l'upside des analystes, est bornée à ses quantiles {p:.0%} et {1 - p:.0%} |
-| Volatilité | Écart-type annualisé de 3 log-rendements disjoints, 50 % titre / 50 % médiane de la sous-industrie |
-| z-scores | Relatifs à la sous-industrie, moyenne et variance rapprochées du secteur (poids de 3 titres), bornés à ±3 |
-| Score final | Moyenne de 4 piliers à poids égal (8 facteurs) |
-| Rendement attendu | Prime de risque implicite + IC × σ × score standardisé (IC = {ic:.2f}) |
-| Taux sans risque | {rf:.2f} % : T-bill américain 3 mois au 13/11/2026 ([FRED DGS3MO]({an.RF_SOURCE})) |
-| Corrélations | Structure par blocs {RHO[0]:.2f} / {RHO[1]:.2f} / {RHO[2]:.2f}, sensibilité dans l'onglet 7 |
-| Portefeuille | 30 titres : quotas par sous-industrie, score > médiane, Sharpe ex ante maximal, 5 % maximum par titre |
-| Filtre ESG | Score ESG > médiane de la sous-industrie ; repêchage des bons scores (> médiane) dont l'ESG ≥ médiane de l'univers, priorité aux sous-industries absentes |
-| Bonus · Historique Bloomberg | Information externe au fichier : 104 semaines de prix en dollars au 13/11/2026 ; volatilité, bêtas (MSCI World) et corrélations mesurés, portefeuilles reconstruits avec un modèle à un facteur ; sans effet sur les onglets 1 à 8 |
-| Partie 3 · Track record | Exercice indépendant (fichier « Exercice allocation 261113 ») : 5 meilleurs sous-jacents à 20 % sur chaque période, dates choisies par programmation dynamique (optimum exact ex post, 10 réallocations au plus), détention sans rééquilibrage entre deux dates |
-| Capitalisations | Bloomberg, clôture du 13/11/2026 en dollars ; utilisées seulement pour le portefeuille de référence pondéré par la capitalisation et la comparaison des tailles, pas dans la construction |
-""")
     st.subheader("Limites et angles morts")
     c1, c2 = st.columns(2)
     c1.markdown("""
@@ -1393,8 +1378,8 @@ with tabs[8]:
 - Hypothèse de loi normale pour la volatilité : les risques extrêmes (queues épaisses) sont sous-estimés.
 
 **Portefeuille**
-- La maximisation du Sharpe amplifie les erreurs d'estimation : l'optimiseur surpondère les titres dont le
-  rendement attendu est surestimé ; le plafond de 5 % et les quotas limitent cet effet sans le supprimer.
+- L'optimisation au Sharpe surpondère les titres dont le rendement est surestimé ou le risque sous-estimé
+  (Michaud, 1989) : la plupart des lignes atteignent le plafond de 5 %, qui sert de garde-fou.
 - Expositions aux grands facteurs de marché non contrôlées (sensibilité au marché, taille, style croissance /
   value, momentum) : une partie de la performance peut venir de ces paris plutôt que de la sélection.
 - Portefeuille construit une seule fois : ni rééquilibrage dans le temps, ni frais de transaction.
