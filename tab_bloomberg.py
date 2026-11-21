@@ -82,9 +82,9 @@ def render(ctx: dict, show, recap):
     fig.update_layout(height=480, title="Volatilité annualisée par titre : estimée (fichier) contre mesurée (Bloomberg)",
                       legend=dict(orientation="h", y=-0.18))
     show(fig)
-    st.caption("Estimée : 3 rendements disjoints du fichier, rapprochés de la médiane de la sous-industrie (onglet 2). "
-               "Mesurée : rendements hebdomadaires annualisés (√52). Au-dessus de la diagonale, risque sous-estimé "
-               "par le fichier.")
+    st.markdown("Estimée : 3 rendements disjoints du fichier, rapprochés de la médiane de la sous-industrie (onglet 2). "
+                "Mesurée : rendements hebdomadaires annualisés (√52). **Au-dessus de la diagonale, risque sous-estimé "
+                "par le fichier.**")
 
     # ------------------------------------------------------------------ bêtas
     st.subheader("Bêtas contre le MSCI World")

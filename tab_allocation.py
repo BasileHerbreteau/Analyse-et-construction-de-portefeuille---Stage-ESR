@@ -120,10 +120,8 @@ def render(show, recap):
     st.subheader("Track record d'un portefeuille à allocation dynamique")
     st.markdown(f"""<div class='recap' style='margin-top:.2rem'>
 <b class='t'>Exercice indépendant, nouveau jeu de données</b>
-Cet onglet ne prolonge pas l'analyse des onglets 1 à 8 : il ne repose ni sur l'univers de 99 actions, ni sur le
-critère agrégé, ni sur le portefeuille construit. Il utilise le fichier <b>« Exercice allocation 261113 »</b> : cours
-de clôture quotidiens de {px.shape[1]} sous-jacents (indices sectoriels européens STOXX, indices américains, ETF), en
-devise de cotation. Les filtres et paramètres de la barre latérale ne s'y appliquent pas.
+Fichier <b>« Exercice allocation 261113 »</b> : cours de clôture quotidiens de {px.shape[1]} sous-jacents (indices
+sectoriels européens STOXX, indices américains, ETF), en devise de cotation.
 <b class='t' style='margin-top:.6rem'>Consigne</b>
 Construire, du 01/01/2026 au 30/10/2026, le track record du portefeuille à allocation dynamique qui maximise la
 performance totale réalisée, avec <b>20 % maximum par sous-jacent</b> et <b>10 réallocations au plus</b>
@@ -209,8 +207,7 @@ performance totale réalisée, avec <b>20 % maximum par sous-jacent</b> et <b>10
     st.dataframe(_comp_table(comp, KEY_ROWS), width="stretch")
     st.markdown("**Détail**")
     st.dataframe(_comp_table(comp, [r for r in comp.index if r not in KEY_ROWS]), width="stretch")
-    st.caption("Entre parenthèses : écart avec l'équipondéré. Vert : écart favorable ; rouge : défavorable ; intensité "
-               "proportionnelle à l'ampleur de l'écart. Statique optimal : meilleur portefeuille sans réallocation, "
+    st.caption("Entre parenthèses : écart avec l'équipondéré. Vert : écart favorable ; rouge : défavorable. Statique optimal : meilleur portefeuille sans réallocation, "
                f"mêmes contraintes. Rotation cumulée du dynamique (achats + ventes) : {_fmt_pct(turnover, 0)}. "
                "Volatilité : rendements des jours de cotation, annualisés (√252). Sharpe : taux sans risque = €STR "
                f"moyen de la période, soit {_fmt_pct(rf, 2)} en taux annuel ([source]({al.ESTR_SOURCE})). "
