@@ -4,7 +4,7 @@ Application Streamlit qui analyse un univers de **99 actions** des secteurs Info
 Services (fichier *universe of stock 261113*, données au 13/11/2026), construit un critère de sélection comparé à la
 **Rule of 40**, puis un **portefeuille diversifié de 30 titres (5 % maximum par ligne)** comparé à l'équipondéré.
 L'onglet bonus **Historique Bloomberg** confronte les hypothèses de risque à deux ans de prix, et l'onglet
-**Exo 3 · Track record**, indépendant, traite un exercice d'allocation dynamique sur un autre jeu de données.
+**Exercice 3 · Track record**, indépendant, traite un exercice d'allocation dynamique sur un autre jeu de données.
 
 ## Contenu de l'application
 
@@ -87,7 +87,7 @@ de Bloomberg (15/11/2024 – 13/11/2026), avec le MSCI World comme marché.
 * **Portefeuilles reconstruits** avec un modèle à un facteur (Σ = σ²ₘββᵀ + D) et la volatilité mesurée : la sélection
   change pour quelques titres (19 des 21 lignes sont conservées), mais le cœur du portefeuille reste le même.
 
-## Exo 3 · Track record
+## Exercice 3 · Track record
 
 Exercice **indépendant** des autres onglets, sur un **autre jeu de données** (fichier *Exercice allocation 261113*) :
 cours quotidiens de 29 sous-jacents (indices sectoriels STOXX Europe 600 et EURO STOXX, Russell 2000, S&P
@@ -100,7 +100,7 @@ Communication Services, trois ETF). Il ne réutilise ni l'univers d'actions, ni 
   linéaire en poids et son maximum est atteint avec 20 % sur les 5 sous-jacents qui progressent le plus. Les dates de
   réallocation sont choisies par programmation dynamique, ce qui donne l'optimum global (contrôlé par recherche
   exhaustive et tirages aléatoires).
-* **Classeur Excel** `resultats/track_record_allocation_dynamique.xlsx`, téléchargeable depuis l'onglet : track
+* **Classeur Excel** `resultats/track_record_exercice_3.xlsx`, téléchargeable depuis l'onglet : track
   record recalculé par formules à partir des dates et des poids, modifiables.
 
 | 01/01 – 30/10/2026 | Dynamique optimal | Statique optimal (0 réallocation) | Équipondéré (29) |
@@ -122,10 +122,10 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-L'application s'ouvre alors à l'adresse http://localhost:8501 de la machine qui l'a lancée. Le classeur Excel de l'exo 3
+L'application s'ouvre alors à l'adresse http://localhost:8501 de la machine qui l'a lancée. Le classeur Excel de l'exercice 3
 s'ouvre aussi directement depuis le dossier `resultats/`.
 
 Code : `app.py` (interface), `data_utils.py` (données, ESG, capitalisations, historique Bloomberg), `analytics.py`
 (volatilité, frontière), `scoring.py` (z-scores, rendement attendu, Rule of 40), `portfolio.py` (sélection,
-optimisation). Bonus : `tab_bloomberg.py` (historique Bloomberg, modèle à un facteur). Exo 3 : `allocation.py` (optimisation et
+optimisation). Bonus : `tab_bloomberg.py` (historique Bloomberg, modèle à un facteur). Exercice 3 : `allocation.py` (optimisation et
 track record), `tab_allocation.py` (onglet), `export_allocation_excel.py` (classeur Excel).

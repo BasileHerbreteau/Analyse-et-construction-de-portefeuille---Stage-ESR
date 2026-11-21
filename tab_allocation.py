@@ -1,4 +1,4 @@
-"""Onglet « Exo 3 - Track record » : portefeuille à allocation dynamique du 01/01/2026 au 30/10/2026.
+"""Onglet « Exercice 3 - Track record » : portefeuille à allocation dynamique du 01/01/2026 au 30/10/2026.
 
 Exercice indépendant du reste de l'application : autre jeu de données (fichier « Exercice allocation 261113 »),
 sans lien avec l'univers d'actions, le score ni les filtres de la barre latérale.
@@ -19,8 +19,8 @@ import data_utils as du
 C_NAVY, C_BLUE, C_LIGHT, C_TEAL, C_PALE, C_RED, C_GREY = (du.C_NAVY, du.C_BLUE, du.C_LIGHT, du.C_TEAL, du.C_PALE,
                                                             du.C_RED, du.C_GREY)
 TEMPLATE = "plotly_white"
-EXCEL = Path(__file__).parent / "resultats" / "track_record_allocation_dynamique.xlsx"
-EXCEL_NAME = "Track record - portefeuille dynamique.xlsx"
+EXCEL = Path(__file__).parent / "resultats" / "track_record_exercice_3.xlsx"   # version finale mise en forme
+EXCEL_NAME = "Partie 3 - Track record d'un portefeuille dynamique.xlsx"
 STRICT = Path(__file__).parent / "data" / "variante_plafond_quotidien.csv"
 NAMES = {"opt": "Dynamique optimal", "static": "Statique optimal (0 réallocation)", "ew": "Équipondéré (29)"}
 COLORS = {"opt": C_NAVY, "static": C_TEAL, "ew": C_GREY}

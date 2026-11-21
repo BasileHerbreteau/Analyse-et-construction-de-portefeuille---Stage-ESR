@@ -259,7 +259,7 @@ st.caption("Données : fichier « universe of stock 261113 » (99 titres, 17 col
 tabs = st.tabs([
     "1 · Univers", "2 · Rendement & risque", "3 · Valorisation & attentes", "4 · Critère agrégé",
     "5 · Comparaison avec la Rule of 40", "6 · ESG", "7 · Rendement attendu & frontière",
-    "8 · Portefeuille final", "Annexe", "Bonus - Historique Bloomberg", "Exo 3 - Track record",
+    "8 · Portefeuille final", "Annexe", "Bonus - Historique Bloomberg", "Exercice 3 - Track record",
 ])
 # Au clic sur un onglet, la page revient au début de l'onglet (juste sous la barre figée).
 st.iframe("""<script>
