@@ -736,8 +736,10 @@ with tabs[4]:
     st.dataframe(prof.style.format("{:.2f}"), width="stretch")
     st.markdown("**Corrélation de rang de chaque pilier avec la Rule of 40** : " +
                 " · ".join(f"{p_} {v_:.2f}" for p_, v_ in corr_p.items()))
-    dis = rank.assign(Statut=np.select([cmp_["top"] & ~cmp_["passe"], ~cmp_["top"] & cmp_["passe"]],
-                                       ["Score élevé, Rule of 40 non atteinte", "Rule of 40 atteinte, score faible"], ""))
+    # np.select renvoie un tableau dans l'ordre de df : on le réindexe pour l'aligner sur rank (trié par score)
+    dis = rank.assign(Statut=pd.Series(np.select([cmp_["top"] & ~cmp_["passe"], ~cmp_["top"] & cmp_["passe"]],
+                                                 ["Score élevé, Rule of 40 non atteinte",
+                                                  "Rule of 40 atteinte, score faible"], ""), index=df.index))
     dis = dis[dis.Statut != ""][["Statut", "ticker", "name", "subindustry", "Score final", "rule_of_40"] + PILLARS]
     with st.expander(f"Titres sur lesquels les deux critères divergent ({len(dis)})"):
         st.dataframe(dis.style.format({c_: "{:.2f}" for c_ in ["Score final"] + PILLARS} | {"rule_of_40": "{:.1f}"}),
